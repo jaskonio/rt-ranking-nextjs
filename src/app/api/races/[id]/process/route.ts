@@ -2,8 +2,8 @@ import { processRaceRunners } from '@/services/raceService';
 import prisma from '@/lib/db';
 
 
-export async function POST(request: Request) {
-  const { raceId }: { raceId: number } = await request.json();
+export async function POST(request: Request, { params }: { params: { id: string } }) {
+  const raceId = parseInt((await params).id)
 
   try {
     await processRaceRunners(raceId);
