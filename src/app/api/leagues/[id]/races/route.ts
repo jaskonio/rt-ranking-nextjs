@@ -1,7 +1,7 @@
 import { addRaceToLeague } from "@/services/leagueService";
 
-export async function POST(request: Request, { params }: { params: { id: string } }) {
-    const leagueId = parseInt(params.id)
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+    const leagueId = parseInt((await params).id)
     const { raceId } = await request.json();
 
     // Validar los datos

@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import { updateRunner, deleteRunner } from '@/services/runnerService';
 import { uploadToS3 } from '@/services/awsService';
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
-    const { id } = params;
+export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
 
     try {
         const formData = await req.formData();
@@ -23,8 +23,8 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
-    const { id } = params;
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
 
     try {
         await deleteRunner(parseInt(id));

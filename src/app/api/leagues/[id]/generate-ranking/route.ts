@@ -1,7 +1,7 @@
 import { generateLeagueRanking } from "@/services/leagueService";
 
-export async function POST(request: Request, { params }: { params: { id: string } }) {
-    const leagueId = parseInt(params.id)
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+    const leagueId = parseInt((await params).id)
 
     // Validar los datos
     // Normalización de los datos

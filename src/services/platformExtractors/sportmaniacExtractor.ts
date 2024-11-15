@@ -34,7 +34,7 @@ export const sportmaniacExtractor: PlatformExtractor = {
     const eventRaceData = await data.json();
     const runnerRowsData = eventRaceData['data']['Rankings'];
 
-    const runnerData: RunnerData[] = runnerRowsData.map((runner) => {
+    const runnerData: RunnerData[] = runnerRowsData.map((runner: any) => {
       const newRunnerData: RunnerData = {
         name: runner.name ? capitalizeText(runner.name) : "",
         surname: "",

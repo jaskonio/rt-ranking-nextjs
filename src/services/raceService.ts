@@ -86,7 +86,7 @@ export const processRaceRunners = async (
     await completeRaceProcessing(race.id, true);
   } catch (error) {
     // Registrar el error y marcar la carrera como error
-    await completeRaceProcessing(raceId, false, error);
+    await completeRaceProcessing(raceId, false, error as string);
     throw new Error(`Error en el procesamiento de la carrera: ${error}`);
   }
 };

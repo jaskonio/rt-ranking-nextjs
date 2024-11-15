@@ -2,8 +2,8 @@ import prisma from '@/lib/db';
 import { updateScoringMethod } from '@/services/scoringMethodService';
 import { NextResponse } from 'next/server';
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
-    const id = parseInt(params.id, 10);
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+    const id = parseInt((await params).id, 10);
     if (isNaN(id)) return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
 
     const scoringMethod = await prisma.scoringMethod.findUnique({ where: { id } })
@@ -13,8 +13,8 @@ export async function GET(request: Request, { params }: { params: { id: string }
     return NextResponse.json(scoringMethod);
 }
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
-    const id = parseInt(params.id, 10);
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
+    const id = parseInt((await params).id, 10);
     if (isNaN(id)) return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
 
     const body = await request.json();
@@ -24,8 +24,8 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     return NextResponse.json(updatedScoringMethod);
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
-    const id = parseInt(params.id, 10);
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+    const id = parseInt((await params).id, 10);
     if (isNaN(id)) return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
 
     await prisma.scoringMethod.delete({ where: { id } });

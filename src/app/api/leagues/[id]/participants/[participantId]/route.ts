@@ -1,8 +1,8 @@
 import { deleteParticipant, updateParticipant } from "@/services/leagueService";
 
-export async function PUT(request: Request, { params }: { params: { id: string, participantId: string } }) {
-    const leagueId = parseInt(params.id)
-    const participantId = parseInt(params.participantId)
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string, participantId: string }> }) {
+    const leagueId = parseInt((await params).id)
+    const participantId = parseInt((await params).participantId)
 
     const { runnerId, bibNumber } = await request.json();
 
@@ -18,9 +18,9 @@ export async function PUT(request: Request, { params }: { params: { id: string, 
     }
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string, participantId: string } }) {
-    const leagueId = parseInt(params.id)
-    const participantId = parseInt(params.participantId)
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string, participantId: string }> }) {
+    const leagueId = parseInt((await params).id)
+    const participantId = parseInt((await params).participantId)
 
     // Validar los datos
     // Normalización de los datos

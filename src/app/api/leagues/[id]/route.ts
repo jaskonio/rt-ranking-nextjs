@@ -1,7 +1,7 @@
 import { createLeague, getAllLeagues, getLeagueById, updateLeague } from "@/services/leagueService";
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
-    const id = parseInt(params.id)
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+    const id = parseInt((await params).id)
 
     try {
         const league = await getLeagueById(id)
@@ -13,8 +13,8 @@ export async function GET(request: Request, { params }: { params: { id: string }
     }
 }
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
-    const id = parseInt(params.id)
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
+    const id = parseInt((await params).id)
 
     const { name, startDate: startDateString, endDate: endDateString, scoringMethodId } = await request.json();
 

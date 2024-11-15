@@ -1,6 +1,6 @@
 import { removeRaceFromLeague } from "@/services/leagueService";
 
-export async function DELETE(request: Request, { params }: { params: { id: string, raceId: string } }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string, raceId: string }> }) {
     const leagueId = parseInt((await params).id)
     const raceId = parseInt((await params).raceId)
 
