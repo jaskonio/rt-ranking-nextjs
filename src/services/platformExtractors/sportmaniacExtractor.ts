@@ -22,6 +22,24 @@ const capitalizeText = (text: string) => {
     .join(' ');
 }
 
+type RunnerRowsData = {
+  name: string;
+  dorsal: string;
+  category: string;
+  gender: string;
+  club: string;
+  finishedRace: boolean;
+  pos: string;
+  officialTime: string;
+  average: string;
+  catPos: string;
+  genPos: string;
+  realPos: string;
+  realTime: string;
+  averageNet: string;
+  realCatPos: string;
+  realGenPos: string;
+}
 export const sportmaniacExtractor: PlatformExtractor = {
   async extractRunnerData(url: string): Promise<RunnerData[]> {
     const eventId = extractIdFromUrl(url);
@@ -34,26 +52,26 @@ export const sportmaniacExtractor: PlatformExtractor = {
     const eventRaceData = await data.json();
     const runnerRowsData = eventRaceData['data']['Rankings'];
 
-    const runnerData: RunnerData[] = runnerRowsData.map((runner: any) => {
+    const runnerData: RunnerData[] = runnerRowsData.map((runner: RunnerRowsData) => {
       const newRunnerData: RunnerData = {
         name: runner.name ? capitalizeText(runner.name) : "",
         surname: "",
         fullName: runner.name ? capitalizeText(runner.name) : "",
         bib: runner.dorsal ? parseInt(runner.dorsal) : 0,
-        category: runner.category || null,
+        category: runner.category,
         gender: runner.gender ? convertToGender(runner.gender) : "",
-        club: runner.club || null,
+        club: runner.club,
         finished: runner.finishedRace || false,
 
         officialPosition: runner.pos ? parseInt(runner.pos, 10) : 0,
-        officialTime: runner.officialTime || null,
-        officialPace: runner.average || null,
+        officialTime: runner.officialTime,
+        officialPace: runner.average,
         officialCategoryPosition: runner.catPos ? parseInt(runner.catPos, 10) : 0,
         officialGenderPosition: runner.genPos ? parseInt(runner.genPos, 10) : 0,
 
         realPosition: runner.realPos ? parseInt(runner.realPos, 10) : 0,
-        realTime: runner.realTime || null,
-        realPace: runner.averageNet || null,
+        realTime: runner.realTime,
+        realPace: runner.averageNet,
         realCategoryPosition: runner.realCatPos ? parseInt(runner.realCatPos, 10) : 0,
         realGenderPosition: runner.realGenPos ? parseInt(runner.realGenPos, 10) : 0,
       }

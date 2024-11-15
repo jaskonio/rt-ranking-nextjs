@@ -1,4 +1,4 @@
-import { createLeague, getAllLeagues, getLeagueById, updateLeague } from "@/services/leagueService";
+import { getLeagueById, updateLeague } from "@/services/leagueService";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
     const id = parseInt((await params).id)

@@ -19,6 +19,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         const runner = await updateRunner(parseInt(id), { ...data, ...(photoUrl ? { photoUrl } : {}) });
         return NextResponse.json(runner, { status: 200 });
     } catch (error) {
+        console.error("Ocurrió un error al actualizar el runner:", error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
@@ -30,6 +31,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
         await deleteRunner(parseInt(id));
         return NextResponse.json({ success: true });
     } catch (error) {
+        console.error("Ocurrió un error al eliminar el runner:", error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }

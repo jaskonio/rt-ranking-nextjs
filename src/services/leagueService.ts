@@ -152,35 +152,42 @@ const calculateRaceRanking = async (participations: RunnerParticipation[], parti
         }));
 
     // Ordenar resultados basados en la configuración del método de puntuación
-    raceResults.sort((a: any, b: any) => {
+    raceResults.sort((a, b) => {
+        const primaryAttribute = scoringMethod.primaryAttribute as keyof typeof a;
+
         const primaryOrder =
             scoringMethod.primaryOrder === 'ASC'
-                ? a[scoringMethod.primaryAttribute] - b[scoringMethod.primaryAttribute]
-                : b[scoringMethod.primaryAttribute] - a[scoringMethod.primaryAttribute];
+                ? a[primaryAttribute] - b[primaryAttribute]
+                : b[primaryAttribute] - a[primaryAttribute];
 
-        if (primaryOrder !== 0) return primaryOrder;
+        if (primaryOrder !== 0 || !scoringMethod.secondaryOrder) return primaryOrder;
+
+        const secondaryAttribute = scoringMethod.secondaryAttribute as keyof typeof a;
 
         const secondaryOrder =
             scoringMethod.secondaryAttribute && scoringMethod.secondaryOrder
                 ? scoringMethod.secondaryOrder === 'ASC'
-                    ? a[scoringMethod.secondaryAttribute] - b[scoringMethod.secondaryAttribute]
-                    : b[scoringMethod.secondaryAttribute] - a[scoringMethod.secondaryAttribute]
+                    ? a[secondaryAttribute] - b[secondaryAttribute]
+                    : b[secondaryAttribute] - a[secondaryAttribute]
                 : 0;
 
-        if (secondaryOrder !== 0) return secondaryOrder;
+        if (secondaryOrder !== 0 || !scoringMethod.tertiaryOrder) return secondaryOrder;
+
+
+        const tertiaryAttribute = scoringMethod.tertiaryAttribute as keyof typeof a;
 
         const tertiaryOrder =
             scoringMethod.tertiaryAttribute && scoringMethod.tertiaryOrder
                 ? scoringMethod.tertiaryOrder === 'ASC'
-                    ? a[scoringMethod.tertiaryAttribute] - b[scoringMethod.tertiaryAttribute]
-                    : b[scoringMethod.tertiaryAttribute] - a[scoringMethod.tertiaryAttribute]
+                    ? a[tertiaryAttribute] - b[tertiaryAttribute]
+                    : b[tertiaryAttribute] - a[tertiaryAttribute]
                 : 0;
 
         return tertiaryOrder;
     });
 
     // Asignar puntos y posiciones
-    const pointsDistribution: any = scoringMethod.pointsDistribution // is {}
+    const pointsDistribution = scoringMethod.pointsDistribution as number[]// is {}
     return raceResults.map((result, index) => ({
         leagueId: participants[0].leagueId,
         raceId: result.raceId,

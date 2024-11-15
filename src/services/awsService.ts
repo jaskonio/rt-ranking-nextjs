@@ -9,5 +9,6 @@
 // });
 
 export const uploadToS3 = async (file: Buffer, fileName: string) => {
+    console.log(`${file}- ${fileName}`)
     return "https://i.pravatar.cc/300"; // Devuelve la URL de la imagen
 };

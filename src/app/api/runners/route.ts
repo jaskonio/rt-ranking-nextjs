@@ -27,6 +27,7 @@ export async function POST(req: Request) {
         const runner = await addRunner({ ...data }, photoUrl);
         return Response.json(runner, { status: 201 });
     } catch (error) {
+        console.error("Ocurrió un error al añadir el runner:", error);
         return Response.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }

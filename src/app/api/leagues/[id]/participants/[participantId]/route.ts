@@ -1,7 +1,6 @@
 import { deleteParticipant, updateParticipant } from "@/services/leagueService";
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string, participantId: string }> }) {
-    const leagueId = parseInt((await params).id)
     const participantId = parseInt((await params).participantId)
 
     const { runnerId, bibNumber } = await request.json();
@@ -19,14 +18,14 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 }
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string, participantId: string }> }) {
-    const leagueId = parseInt((await params).id)
     const participantId = parseInt((await params).participantId)
 
     // Validar los datos
     // Normalización de los datos
 
     try {
-        const newLeague = await deleteParticipant(participantId)
+        await deleteParticipant(participantId)
+
         return Response.json({ success: true });
     } catch (error) {
         console.error("Ocurrió un error al eliminar un participante:", error);
