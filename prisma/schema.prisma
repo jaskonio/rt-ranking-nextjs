@@ -1,0 +1,133 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Race {
+  id               Int                     @id @default(autoincrement())
+  name             String
+  date             DateTime
+  isProcessed      Boolean                 @default(false)
+  platform         String
+  processingStatus String                  @default("PENDING")
+  url              String
+  leagueRaces      LeagueRace[]
+  leagueRankings   LeagueRanking[]
+  history          RaceProcessingHistory[]
+  participations   RunnerParticipation[]
+}
+
+model RunnerParticipation {
+  id                       Int     @id @default(autoincrement())
+  raceId                   Int
+  bibNumber                Int
+  realPosition             Int
+  realTime                 String
+  realPace                 String
+  officialPosition         Int
+  officialTime             String
+  officialPace             String
+  category                 String
+  fullName                 String
+  gender                   String
+  name                     String
+  surname                  String
+  club                     String
+  finished                 Boolean
+  realCategoryPosition     Int
+  realGenderPosition       Int
+  officialCategoryPosition Int
+  officialGenderPosition   Int
+  race                     Race    @relation(fields: [raceId], references: [id])
+}
+
+model Runner {
+  id                Int                 @id @default(autoincrement())
+  name              String
+  surname           String
+  photoUrl          String?
+  leagueParticipant LeagueParticipant[]
+}
+
+model RaceProcessingHistory {
+  id           Int      @id @default(autoincrement())
+  raceId       Int
+  processedAt  DateTime @default(now())
+  status       String
+  errorDetails String?
+  race         Race     @relation(fields: [raceId], references: [id])
+}
+
+model League {
+  id              Int                 @id @default(autoincrement())
+  name            String
+  startDate       DateTime
+  endDate         DateTime
+  scoringMethodId Int
+  scoringMethod   ScoringMethod       @relation(fields: [scoringMethodId], references: [id])
+  participants    LeagueParticipant[]
+  races           LeagueRace[]
+  rankings        LeagueRanking[]
+}
+
+model LeagueParticipant {
+  id                 Int              @id @default(autoincrement())
+  leagueId           Int
+  runnerId           Int
+  bibNumber          Int
+  league             League           @relation(fields: [leagueId], references: [id])
+  runner             Runner           @relation(fields: [runnerId], references: [id])
+  individualRankings LeagueRanking[]
+  rankingHistories   RankingHistory[]
+}
+
+model LeagueRace {
+  id       Int    @id @default(autoincrement())
+  leagueId Int
+  raceId   Int
+  league   League @relation(fields: [leagueId], references: [id])
+  race     Race   @relation(fields: [raceId], references: [id])
+}
+
+model LeagueRanking {
+  id               Int               @id @default(autoincrement())
+  leagueId         Int
+  raceId           Int?
+  participantId    Int
+  position         Int
+  points           Float
+  top5Finishes     Int               @default(0)
+  bestRealPace     String?
+  previousPosition Int?
+  league           League            @relation(fields: [leagueId], references: [id])
+  participant      LeagueParticipant @relation(fields: [participantId], references: [id])
+  race             Race?             @relation(fields: [raceId], references: [id])
+}
+
+model RankingHistory {
+  id                Int               @id @default(autoincrement())
+  participantId     Int
+  position          Int
+  points            Float
+  recordedAt        DateTime          @default(now())
+  leagueParticipant LeagueParticipant @relation(fields: [participantId], references: [id])
+}
+
+model ScoringMethod {
+  id                 Int      @id @default(autoincrement())
+  name               String
+  description        String?
+  formula            String
+  primaryAttribute   String
+  primaryOrder       String
+  secondaryAttribute String?
+  secondaryOrder     String?
+  tertiaryAttribute  String?
+  tertiaryOrder      String?
+  pointsDistribution Json
+  leagues            League[]
+}
