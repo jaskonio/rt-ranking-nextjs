@@ -152,7 +152,7 @@ const calculateRaceRanking = async (participations: RunnerParticipation[], parti
         }));
 
     // Ordenar resultados basados en la configuración del método de puntuación
-    raceResults.sort((a, b) => {
+    raceResults.sort((a: any, b: any) => {
         const primaryOrder =
             scoringMethod.primaryOrder === 'ASC'
                 ? a[scoringMethod.primaryAttribute] - b[scoringMethod.primaryAttribute]
