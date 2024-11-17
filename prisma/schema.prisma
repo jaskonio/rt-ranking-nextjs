@@ -8,17 +8,18 @@ datasource db {
 }
 
 model Race {
-  id               Int                     @id @default(autoincrement())
-  name             String
-  date             DateTime
-  isProcessed      Boolean                 @default(false)
-  platform         String
-  processingStatus String                  @default("PENDING")
-  url              String
-  leagueRaces      LeagueRace[]
-  leagueRankings   LeagueRanking[]
-  history          RaceProcessingHistory[]
-  participations   RunnerParticipation[]
+  id                   Int                     @id @default(autoincrement())
+  name                 String
+  date                 DateTime
+  isProcessed          Boolean                 @default(false)
+  platform             String
+  processingStatus     String                  @default("PENDING")
+  url                  String
+  leagueRaces          LeagueRace[]
+  leagueRankings       LeagueRanking[]
+  leagueRankingHistory LeagueRankingHistory[]
+  history              RaceProcessingHistory[]
+  participations       RunnerParticipation[]
 }
 
 model RunnerParticipation {
@@ -63,26 +64,27 @@ model RaceProcessingHistory {
 }
 
 model League {
-  id              Int                 @id @default(autoincrement())
+  id              Int                    @id @default(autoincrement())
   name            String
   startDate       DateTime
   endDate         DateTime
   scoringMethodId Int
-  scoringMethod   ScoringMethod       @relation(fields: [scoringMethodId], references: [id])
+  scoringMethod   ScoringMethod          @relation(fields: [scoringMethodId], references: [id])
   participants    LeagueParticipant[]
   races           LeagueRace[]
   rankings        LeagueRanking[]
+  rankingHistory  LeagueRankingHistory[]
 }
 
 model LeagueParticipant {
-  id                 Int              @id @default(autoincrement())
+  id                 Int                    @id @default(autoincrement())
   leagueId           Int
   runnerId           Int
   bibNumber          Int
-  league             League           @relation(fields: [leagueId], references: [id])
-  runner             Runner           @relation(fields: [runnerId], references: [id])
+  league             League                 @relation(fields: [leagueId], references: [id])
+  runner             Runner                 @relation(fields: [runnerId], references: [id])
   individualRankings LeagueRanking[]
-  rankingHistories   RankingHistory[]
+  rankingHistories   LeagueRankingHistory[]
 }
 
 model LeagueRace {
@@ -94,27 +96,34 @@ model LeagueRace {
 }
 
 model LeagueRanking {
-  id               Int               @id @default(autoincrement())
-  leagueId         Int
-  raceId           Int?
-  participantId    Int
-  position         Int
-  points           Float
-  top5Finishes     Int               @default(0)
-  bestRealPace     String?
-  previousPosition Int?
-  league           League            @relation(fields: [leagueId], references: [id])
-  participant      LeagueParticipant @relation(fields: [participantId], references: [id])
-  race             Race?             @relation(fields: [raceId], references: [id])
+  id            Int               @id @default(autoincrement())
+  leagueId      Int
+  raceId        Int
+  participantId Int
+  position      Int
+  points        Float
+  realPace      String
+  top5Finishes  Boolean           @default(false)
+  league        League            @relation(fields: [leagueId], references: [id])
+  participant   LeagueParticipant @relation(fields: [participantId], references: [id])
+  race          Race              @relation(fields: [raceId], references: [id])
 }
 
-model RankingHistory {
-  id                Int               @id @default(autoincrement())
-  participantId     Int
-  position          Int
-  points            Float
-  recordedAt        DateTime          @default(now())
-  leagueParticipant LeagueParticipant @relation(fields: [participantId], references: [id])
+model LeagueRankingHistory {
+  id                   Int               @id @default(autoincrement())
+  leagueId             Int
+  raceId               Int
+  participantId        Int
+  position             Int
+  points               Float
+  previousPosition     Int
+  top5Finishes         Int               @default(0)
+  numberParticipantion Int
+  bestPosition         Int
+  bestRealPace         String?
+  league               League            @relation(fields: [leagueId], references: [id])
+  participant          LeagueParticipant @relation(fields: [participantId], references: [id])
+  race                 Race              @relation(fields: [raceId], references: [id])
 }
 
 model ScoringMethod {

@@ -1,5 +1,5 @@
 import prisma from "@/lib/db";
-import { LeagueParticipant, RunnerParticipation, ScoringMethod } from "@prisma/client";
+import { LeagueParticipant, LeagueRanking, RunnerParticipation, ScoringMethod } from "@prisma/client";
 
 export const createLeague = async (data: {
     name: string;
@@ -89,7 +89,8 @@ export const generateLeagueRanking = async (leagueId: number) => {
     if (races.length === 0) throw new Error('No races in the league');
 
     const rankings = [];
-    const globalRanking = new Map<number, { points: number; top5Finishes: number }>();
+    const globalRanking = new Map<number, { raceId: number; points: number; top5Finishes: number; bestRealPace: string; bestPosition: number; participations: number; previousPosition: number }>();
+
 
     for (const leagueRace of races) {
         const { race } = leagueRace;
@@ -104,13 +105,31 @@ export const generateLeagueRanking = async (leagueId: number) => {
         // Actualizar ranking global
         for (const rank of raceRankings) {
             const globalEntry = globalRanking.get(rank.participantId) || {
+                raceId: 0,
                 points: 0,
                 top5Finishes: 0,
+                bestRealPace: null,
+                bestPosition: Infinity,
+                participations: 0,
+                previousPosition: null,
             };
 
+            let updatedTop5Finishes = globalEntry.top5Finishes;
+            if (rank.top5Finishes) updatedTop5Finishes++;
+
+            // TODO
+            const updatedBestPace = globalEntry.bestRealPace
+                ? Math.min(parseFloat(globalEntry.bestRealPace), parseFloat(rank.realPace))
+                : rank.realPace;
+
             globalRanking.set(rank.participantId, {
+                raceId: rank.raceId,
                 points: globalEntry.points + rank.points,
-                top5Finishes: globalEntry.top5Finishes + (rank.position <= 5 ? 1 : 0),
+                top5Finishes: updatedTop5Finishes,
+                bestRealPace: updatedBestPace.toString(),
+                bestPosition: Math.min(globalEntry.bestPosition, rank.position),
+                participations: globalEntry.participations + 1,
+                previousPosition: 0,
             });
         }
 
@@ -121,17 +140,33 @@ export const generateLeagueRanking = async (leagueId: number) => {
 
     // Guardar ranking global
     const globalRankingsArray = Array.from(globalRanking.entries())
-        .map(([participantId, { points, top5Finishes }]) => ({
+        .map(([participantId, { raceId, points, top5Finishes, bestRealPace, bestPosition, participations }]) => ({
+            raceId,
             leagueId,
             participantId,
             position: 0, // Se calculará en ordenamiento
             points,
             top5Finishes,
+            numberParticipantion: participations,
+            bestRealPace,
+            bestPosition,
+            previousPosition: 0
         }))
         .sort((a, b) => b.points - a.points || a.top5Finishes - b.top5Finishes)
         .map((entry, index) => ({ ...entry, position: index + 1 }));
 
-    await prisma.leagueRanking.createMany({ data: globalRankingsArray });
+    // Actualizar historial con posiciones previas
+    const previousRankings = await prisma.leagueRankingHistory.findMany({
+        where: { leagueId },
+        select: { participantId: true, position: true },
+    });
+
+    const previousPositionsMap = new Map(previousRankings.map((r) => [r.participantId, r.position]));
+    globalRankingsArray.forEach((entry) => {
+        entry.previousPosition = previousPositionsMap.get(entry.participantId) || 0;
+    });
+
+    await prisma.leagueRankingHistory.createMany({ data: globalRankingsArray });
 
     return { raceRankings: rankings, globalRankings: globalRankingsArray };
 }
@@ -188,11 +223,15 @@ const calculateRaceRanking = async (participations: RunnerParticipation[], parti
 
     // Asignar puntos y posiciones
     const pointsDistribution = scoringMethod.pointsDistribution as number[]// is {}
-    return raceResults.map((result, index) => ({
+    const leagueRanking: Omit<LeagueRanking, 'id'>[] = raceResults.map((result, index) => ({
         leagueId: participants[0].leagueId,
         raceId: result.raceId,
         participantId: result.participantId,
         position: index + 1,
         points: pointsDistribution[index] || 0,
+        realPace: result.realPace,
+        top5Finishes: (index + 1) <= 5 ? true : false
     }));
+
+    return leagueRanking
 }
