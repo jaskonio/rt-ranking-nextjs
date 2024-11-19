@@ -75,7 +75,7 @@ export const processRaceRunners = async (
 
             officialPosition: runner.officialPosition,
             officialTime: runner.officialTime,
-            officialPace: runner.officialPace,
+            officialPace: runner.officialPace.replace(/\s/g, "").toLowerCase(),
             officialCategoryPosition: runner.officialCategoryPosition,
             officialGenderPosition: runner.officialGenderPosition
           },
