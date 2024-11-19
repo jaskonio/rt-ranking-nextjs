@@ -88,11 +88,21 @@ export const generateLeagueRanking = async (leagueId: number) => {
     if (participants.length === 0) throw new Error('No participants in the league');
     if (races.length === 0) throw new Error('No races in the league');
 
+    const racesSorted = races.sort((a, b) => (a.order > b.order ? 1 : -1))
     const rankings = [];
-    const globalRanking = new Map<number, { raceId: number; points: number; top5Finishes: number; bestRealPace: string; bestPosition: number; participations: number; previousPosition: number }>();
+    const globalRanking = new Map<number, {
+        raceId: number;
+        points: number;
+        top5Finishes: number;
+        bestRealPace: string;
+        bestPosition: number;
+        participations: number;
+        previousPosition: number
+    }>();
 
+    const globalRankingsArray = []
 
-    for (const leagueRace of races) {
+    for (const leagueRace of racesSorted) {
         const { race } = leagueRace;
         if (!race) continue;
 
@@ -111,7 +121,7 @@ export const generateLeagueRanking = async (leagueId: number) => {
                 bestRealPace: null,
                 bestPosition: Infinity,
                 participations: 0,
-                previousPosition: null,
+                previousPosition: 0,
             };
 
             let updatedTop5Finishes = globalEntry.top5Finishes;
@@ -129,44 +139,43 @@ export const generateLeagueRanking = async (leagueId: number) => {
                 bestRealPace: updatedBestPace.toString(),
                 bestPosition: Math.min(globalEntry.bestPosition, rank.position),
                 participations: globalEntry.participations + 1,
-                previousPosition: 0,
+                previousPosition: globalEntry.previousPosition == 0 ? rank.position : globalEntry.previousPosition,
             });
         }
 
         // Guardar ranking de la carrera
         rankings.push(...raceRankings);
-        await prisma.leagueRanking.createMany({ data: raceRankings });
+
+        // Guardar el global
+        const currentGlobalRanking = Array.from(globalRanking.entries())
+            .map(([participantId, { raceId, points, top5Finishes, bestRealPace, bestPosition, participations, previousPosition }]) => ({
+                raceId,
+                leagueId,
+                participantId,
+                position: 0, // Se calculará en ordenamiento
+                points,
+                top5Finishes,
+                numberParticipantion: participations,
+                bestRealPace,
+                bestPosition,
+                previousPosition
+            }))
+            .map((entry, index) => ({ ...entry, position: index + 1 }));
+
+        globalRankingsArray.push(...currentGlobalRanking)
     }
 
+    // Guardar race rankings
+    await prisma.$transaction([
+        prisma.leagueRanking.deleteMany({ where: { leagueId: leagueId } }),
+        prisma.leagueRanking.createMany({ data: rankings })
+    ])
+
     // Guardar ranking global
-    const globalRankingsArray = Array.from(globalRanking.entries())
-        .map(([participantId, { raceId, points, top5Finishes, bestRealPace, bestPosition, participations }]) => ({
-            raceId,
-            leagueId,
-            participantId,
-            position: 0, // Se calculará en ordenamiento
-            points,
-            top5Finishes,
-            numberParticipantion: participations,
-            bestRealPace,
-            bestPosition,
-            previousPosition: 0
-        }))
-        .sort((a, b) => b.points - a.points || a.top5Finishes - b.top5Finishes)
-        .map((entry, index) => ({ ...entry, position: index + 1 }));
-
-    // Actualizar historial con posiciones previas
-    const previousRankings = await prisma.leagueRankingHistory.findMany({
-        where: { leagueId },
-        select: { participantId: true, position: true },
-    });
-
-    const previousPositionsMap = new Map(previousRankings.map((r) => [r.participantId, r.position]));
-    globalRankingsArray.forEach((entry) => {
-        entry.previousPosition = previousPositionsMap.get(entry.participantId) || 0;
-    });
-
-    await prisma.leagueRankingHistory.createMany({ data: globalRankingsArray });
+    await prisma.$transaction([
+        prisma.leagueRankingHistory.deleteMany({ where: { leagueId: leagueId } }),
+        prisma.leagueRankingHistory.createMany({ data: globalRankingsArray })
+    ])
 
     return { raceRankings: rankings, globalRankings: globalRankingsArray };
 }

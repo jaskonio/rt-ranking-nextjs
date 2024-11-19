@@ -91,6 +91,7 @@ model LeagueRace {
   id       Int    @id @default(autoincrement())
   leagueId Int
   raceId   Int
+  order    Int    @default(0)
   league   League @relation(fields: [leagueId], references: [id])
   race     Race   @relation(fields: [raceId], references: [id])
 }
