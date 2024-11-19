@@ -7,9 +7,20 @@ const paceToSeconds = (pace: string): number => {
     return parseInt(minutes) * 60 + parseInt(seconds);
 };
 
-export const sortPaces = (paces: string[]): string[] => {
-    return paces
-        .map((pace) => ({ original: pace, seconds: paceToSeconds(pace) }))
-        .sort((a, b) => a.seconds - b.seconds) // Más rápido primero
-        .map((entry) => entry.original);
+export const sortPaces = (paceA: string, paceB: string, order: 'ASC' | 'DESC'): number => {
+    const secondsA = paceToSeconds(paceA)
+    const secondsB = paceToSeconds(paceB)
+    return order === 'ASC' ? secondsA - secondsB : secondsB - secondsA;
+};
+
+
+const timeToSeconds = (time: string): number => {
+    const [hours, minutes, seconds] = time.split(':').map(Number);
+    return hours * 3600 + minutes * 60 + seconds;
+};
+
+export const sortTimes = (timeA: string, timeB: string, order: 'ASC' | 'DESC'): number => {
+    const secondsA = timeToSeconds(timeA);
+    const secondsB = timeToSeconds(timeB);
+    return order === 'ASC' ? secondsA - secondsB : secondsB - secondsA;
 };

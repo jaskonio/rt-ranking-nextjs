@@ -1,5 +1,5 @@
 import prisma from "@/lib/db";
-import { sortPaces } from "@/lib/utils";
+import { sortPaces, sortTimes } from "@/lib/utils";
 import { LeagueParticipant, LeagueRanking, RunnerParticipation, ScoringMethod } from "@prisma/client";
 
 export const createLeague = async (data: {
@@ -128,7 +128,7 @@ export const generateLeagueRanking = async (leagueId: number) => {
             let updatedTop5Finishes = globalEntry.top5Finishes;
             if (rank.top5Finishes) updatedTop5Finishes++;
 
-            const updatedBestPace = globalEntry.bestRealPace != null ? sortPaces([globalEntry.bestRealPace, rank.realPace])[0] : rank.realPace
+            const updatedBestPace = globalEntry.bestRealPace != null ? [globalEntry.bestRealPace, rank.realPace].sort((a, b) => sortPaces(a, b, 'DESC'))[0] : rank.realPace
 
             globalRanking.set(rank.participantId, {
                 raceId: rank.raceId,
@@ -166,11 +166,7 @@ export const generateLeagueRanking = async (leagueId: number) => {
     // Guardar race rankings
     await prisma.$transaction([
         prisma.leagueRanking.deleteMany({ where: { leagueId: leagueId } }),
-        prisma.leagueRanking.createMany({ data: rankings })
-    ])
-
-    // Guardar ranking global
-    await prisma.$transaction([
+        prisma.leagueRanking.createMany({ data: rankings }),
         prisma.leagueRankingHistory.deleteMany({ where: { leagueId: leagueId } }),
         prisma.leagueRankingHistory.createMany({ data: globalRankingsArray })
     ])
@@ -193,39 +189,45 @@ const calculateRaceRanking = async (participations: RunnerParticipation[], parti
             ...p,
         }));
 
+    const compareAttribute = (
+        a: typeof raceResults[0],
+        b: typeof raceResults[0],
+        attribute: keyof typeof a,
+        order: 'ASC' | 'DESC'
+    ): number => {
+        const valueA = a[attribute];
+        const valueB = b[attribute];
+
+        if (['officialPace', 'realPace'].includes(attribute)) {
+            return sortPaces(valueA as string, valueB as string, order);
+        }
+
+        if (['officialTime', 'realTime'].includes(attribute)) {
+            return sortTimes(valueA as string, valueB as string, order);
+        }
+
+        return order === 'ASC' ? (valueA as number) - (valueB as number) : (valueB as number) - (valueA as number);
+    };
+
     // Ordenar resultados basados en la configuración del método de puntuación
     raceResults.sort((a, b) => {
         const primaryAttribute = scoringMethod.primaryAttribute as keyof typeof a;
+        const primaryOrderValue = scoringMethod.primaryOrder == 'ASC' ? 'ASC' : 'DESC'
+        const primaryOrder = compareAttribute(a, b, primaryAttribute, primaryOrderValue);
 
-        const primaryOrder =
-            scoringMethod.primaryOrder === 'ASC'
-                ? a[primaryAttribute] - b[primaryAttribute]
-                : b[primaryAttribute] - a[primaryAttribute];
-
-        if (primaryOrder !== 0 || !scoringMethod.secondaryOrder) return primaryOrder;
+        if (primaryOrder !== 0 || !scoringMethod.secondaryAttribute) return primaryOrder;
 
         const secondaryAttribute = scoringMethod.secondaryAttribute as keyof typeof a;
+        const secondaryOrderValue = scoringMethod.secondaryOrder == 'ASC' ? 'ASC' : 'DESC'
 
-        const secondaryOrder =
-            scoringMethod.secondaryAttribute && scoringMethod.secondaryOrder
-                ? scoringMethod.secondaryOrder === 'ASC'
-                    ? a[secondaryAttribute] - b[secondaryAttribute]
-                    : b[secondaryAttribute] - a[secondaryAttribute]
-                : 0;
+        const secondaryOrder = compareAttribute(a, b, secondaryAttribute, secondaryOrderValue);
 
-        if (secondaryOrder !== 0 || !scoringMethod.tertiaryOrder) return secondaryOrder;
-
+        if (secondaryOrder !== 0 || !scoringMethod.tertiaryAttribute) return secondaryOrder;
 
         const tertiaryAttribute = scoringMethod.tertiaryAttribute as keyof typeof a;
+        const tertiaryOrderValue = scoringMethod.tertiaryOrder == 'ASC' ? 'ASC' : 'DESC'
 
-        const tertiaryOrder =
-            scoringMethod.tertiaryAttribute && scoringMethod.tertiaryOrder
-                ? scoringMethod.tertiaryOrder === 'ASC'
-                    ? a[tertiaryAttribute] - b[tertiaryAttribute]
-                    : b[tertiaryAttribute] - a[tertiaryAttribute]
-                : 0;
-
-        return tertiaryOrder;
+        return compareAttribute(a, b, tertiaryAttribute, tertiaryOrderValue);
     });
 
     // Asignar puntos y posiciones
