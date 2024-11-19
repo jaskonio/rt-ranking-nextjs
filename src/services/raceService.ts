@@ -69,13 +69,13 @@ export const processRaceRunners = async (
 
             realPosition: runner.realPosition,
             realTime: runner.realTime,
-            realPace: runner.realPace.replace(/\s/g, "").toLowerCase(),
+            realPace: runner.realPace,
             realCategoryPosition: runner.realCategoryPosition,
             realGenderPosition: runner.realGenderPosition,
 
             officialPosition: runner.officialPosition,
             officialTime: runner.officialTime,
-            officialPace: runner.officialPace.replace(/\s/g, "").toLowerCase(),
+            officialPace: runner.officialPace,
             officialCategoryPosition: runner.officialCategoryPosition,
             officialGenderPosition: runner.officialGenderPosition
           },

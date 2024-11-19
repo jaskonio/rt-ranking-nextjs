@@ -65,13 +65,13 @@ export const sportmaniacExtractor: PlatformExtractor = {
 
         officialPosition: runner.pos ? parseInt(runner.pos, 10) : 0,
         officialTime: runner.officialTime,
-        officialPace: runner.average,
+        officialPace: runner.average.replace(/\s/g, "").toLowerCase(),
         officialCategoryPosition: runner.catPos ? parseInt(runner.catPos, 10) : 0,
         officialGenderPosition: runner.genPos ? parseInt(runner.genPos, 10) : 0,
 
         realPosition: runner.realPos ? parseInt(runner.realPos, 10) : 0,
         realTime: runner.realTime,
-        realPace: runner.averageNet,
+        realPace: runner.averageNet.replace(/\s/g, "").toLowerCase(),
         realCategoryPosition: runner.realCatPos ? parseInt(runner.realCatPos, 10) : 0,
         realGenderPosition: runner.realGenPos ? parseInt(runner.realGenPos, 10) : 0,
       }
