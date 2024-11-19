@@ -1,4 +1,5 @@
 import prisma from "@/lib/db";
+import { sortPaces } from "@/lib/utils";
 import { LeagueParticipant, LeagueRanking, RunnerParticipation, ScoringMethod } from "@prisma/client";
 
 export const createLeague = async (data: {
@@ -127,16 +128,13 @@ export const generateLeagueRanking = async (leagueId: number) => {
             let updatedTop5Finishes = globalEntry.top5Finishes;
             if (rank.top5Finishes) updatedTop5Finishes++;
 
-            // TODO
-            const updatedBestPace = globalEntry.bestRealPace
-                ? Math.min(parseFloat(globalEntry.bestRealPace), parseFloat(rank.realPace))
-                : rank.realPace;
+            const updatedBestPace = globalEntry.bestRealPace != null ? sortPaces([globalEntry.bestRealPace, rank.realPace])[0] : rank.realPace
 
             globalRanking.set(rank.participantId, {
                 raceId: rank.raceId,
                 points: globalEntry.points + rank.points,
                 top5Finishes: updatedTop5Finishes,
-                bestRealPace: updatedBestPace.toString(),
+                bestRealPace: updatedBestPace,
                 bestPosition: Math.min(globalEntry.bestPosition, rank.position),
                 participations: globalEntry.participations + 1,
                 previousPosition: globalEntry.previousPosition == 0 ? rank.position : globalEntry.previousPosition,
