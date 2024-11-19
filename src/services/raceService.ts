@@ -52,9 +52,10 @@ export const processRaceRunners = async (
     const filteredRunners = runnersData.filter(runner => clubFiltered.includes(runner.club.toLocaleLowerCase()));
 
     // Guardar los datos de cada corredor en la base de datos
+    await prisma.runnerParticipation.deleteMany({ where: { raceId: raceId } })
+
     await Promise.all(
       filteredRunners.map(async (runner) => {
-        await prisma.runnerParticipation.deleteMany({ where: { raceId: raceId } })
         await prisma.runnerParticipation.create({
           data: {
             raceId,
