@@ -27,7 +27,7 @@ export const deleteLeague = async (id: number) => {
 export const getLeagueById = async (id: number) => {
     return await prisma.league.findUnique({
         where: { id },
-        include: { participants: true, races: true, rankings: true },
+        include: { participants: true, races: true, rankings: true, rankingHistory: true },
     });
 }
 export const getAllLeagues = async () => {
@@ -243,4 +243,76 @@ const calculateRaceRanking = async (participations: RunnerParticipation[], parti
     }));
 
     return leagueRanking
+}
+
+type Runner = {
+    id: number;
+    position: number;
+    previousPosition: number;
+    name: string;
+    points: number;
+    photoUrl: string;
+    time: string;
+    pace: string;
+    // raceId: string;
+    category: string;
+    bib: number;
+};
+
+export const getRankingHistory = async (id: number) => {
+    const league = await prisma.league.findUnique({
+        where: { id },
+        include: { participants: true, races: { include: { race: true } }, rankings: true, rankingHistory: { include: { participant: { include: { runner: true } } } } },
+    });
+
+    if (!league) throw new Error('League not found');
+
+    const racesMap = new Map<number, {
+        order: number,
+        name: string,
+        date: string,
+        distance: string,
+        runners: Runner[],
+    }>();
+
+    league.races.map((race) => {
+        const result = racesMap.get(race.id) || {
+            order: race.order,
+            name: race.race.name,
+            date: race.race.date.toDateString(),
+            distance: '',
+            runners: []
+        }
+
+        racesMap.set(race.id, result)
+
+        return result
+    })
+    league.rankingHistory.map((runner) => {
+        const race = racesMap.get(runner.raceId)
+        if (!race) return {}
+
+        race.runners.push({
+            bib: 0,
+            category: 'XXXX',
+            id: runner.id,
+            name: runner.participant.runner.name,
+            pace: runner.bestRealPace || '',
+            photoUrl: runner.participant.runner.photoUrl || "https://i.pravatar.cc/300",
+            points: runner.points,
+            position: runner.position,
+            previousPosition: runner.previousPosition,
+            time: '',
+        })
+    })
+
+    const races = Array.from(racesMap, ([raceId, data]) => ({
+        raceId,
+        ...data
+    }))
+
+    return {
+        name: league.name,
+        races
+    }
 }
