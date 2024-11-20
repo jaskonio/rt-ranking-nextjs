@@ -1,5 +1,6 @@
 import prisma from "@/lib/db";
 import { sortPaces, sortTimes } from "@/lib/utils";
+import { RunnerLeagueDetail } from "@/type/runner";
 import { LeagueParticipant, LeagueRanking, RunnerParticipation, ScoringMethod } from "@prisma/client";
 
 export const createLeague = async (data: {
@@ -245,20 +246,6 @@ const calculateRaceRanking = async (participations: RunnerParticipation[], parti
     return leagueRanking
 }
 
-type Runner = {
-    id: number;
-    position: number;
-    previousPosition: number;
-    name: string;
-    points: number;
-    photoUrl: string;
-    time: string;
-    pace: string;
-    // raceId: string;
-    category: string;
-    bib: number;
-};
-
 export const getRankingHistory = async (id: number) => {
     const league = await prisma.league.findUnique({
         where: { id },
@@ -272,11 +259,11 @@ export const getRankingHistory = async (id: number) => {
         name: string,
         date: string,
         distance: string,
-        runners: Runner[],
+        runners: RunnerLeagueDetail[],
     }>();
 
     league.races.map((race) => {
-        const result = racesMap.get(race.id) || {
+        const result = racesMap.get(race.raceId) || {
             order: race.order,
             name: race.race.name,
             date: race.race.date.toDateString(),
@@ -284,7 +271,7 @@ export const getRankingHistory = async (id: number) => {
             runners: []
         }
 
-        racesMap.set(race.id, result)
+        racesMap.set(race.raceId, result)
 
         return result
     })
@@ -293,8 +280,6 @@ export const getRankingHistory = async (id: number) => {
         if (!race) return {}
 
         race.runners.push({
-            bib: 0,
-            category: 'XXXX',
             id: runner.id,
             name: runner.participant.runner.name,
             pace: runner.bestRealPace || '',
@@ -302,7 +287,9 @@ export const getRankingHistory = async (id: number) => {
             points: runner.points,
             position: runner.position,
             previousPosition: runner.previousPosition,
-            time: '',
+            bestPosition: '1 (x2)',
+            numTopFive: '2 (x4)',
+            participation: runner.numberParticipantion
         })
     })
 
