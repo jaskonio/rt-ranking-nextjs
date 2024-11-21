@@ -4,6 +4,8 @@ import { Medal, Trophy, Activity, ChevronUp, Timer, Route, ChevronDown, Minus, S
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { RaceLeagueDetail, RunnerLeagueDetail } from "@/type/runner";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useMemo, useState } from "react";
 
 
 const getPodiumIcon = (position: number) => {
@@ -149,6 +151,12 @@ type LeaderboardPage = {
     races: RaceLeagueDetail[],
 }
 export default function LeaderboardPage({ title, subTitle, subSubTitle, races }: LeaderboardPage) {
+    const [raceSelectedId, setRaceSelectedId] = useState<string>(races[0].raceId.toString())
+
+    const raceSelected = useMemo(() => {
+        return races.filter(e => e.raceId.toString() == raceSelectedId)[0]
+    }, [raceSelectedId, races])
+
     return (
         <div className="max-w-4xl mx-auto">
             <div className="text-center mb-16 space-y-4">
@@ -164,11 +172,23 @@ export default function LeaderboardPage({ title, subTitle, subSubTitle, races }:
                         <Timer className="h-5 w-5" />
                         <span>{subSubTitle}</span>
                     </div>
+                    <div className="flex items-center gap-2">
+                        <Select onValueChange={setRaceSelectedId} defaultValue={raceSelectedId}>
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Carrea" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {races.map((race, index) => (
+                                    <SelectItem key={index} value={race.raceId.toString()}>{race.name}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </div>
             </div>
 
             <div className="space-y-4">
-                {RunnerList(races[races.length - 1].runners)}
+                {RunnerList(raceSelected.runners)}
             </div>
         </div>
     );
