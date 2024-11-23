@@ -39,7 +39,7 @@ export default function Page() {
         <div className="max-w-2xl mx-auto">
             <div className="text-center mb-16 space-y-4 animate-fade-in">
                 <h1 className="text-5xl font-bold text-white">
-                    Editar Carreara
+                    Editar Carrera
                 </h1>
                 <p className="text-gray-300">
                     Configura la carrera
