@@ -30,3 +30,21 @@ export interface RunnerData {
 export interface PlatformExtractor {
   extractRunnerData(url: string): Promise<RunnerData[]>;
 }
+
+export type Races = {
+  id: number;
+  name: string;
+  date: string;
+  isProcessed: boolean;
+  platform: string
+  processingStatus: string
+  url: string;
+}
+
+
+export type RacesFormAdd = {
+  name: string;
+  date: string;
+  url: string;
+  platform: string
+}

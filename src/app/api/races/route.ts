@@ -1,13 +1,14 @@
 import prisma from '@/lib/db';
 import { normalizeRaceData } from '@/lib/normalization';
 import { validateRaceData } from '@/lib/validation';
+import { Races } from '@/type/race';
 
 
 export async function GET() {
   try {
     const races = await prisma.race.findMany({ orderBy: { id: 'asc' } });
 
-    const formattedRaces = races.map((race) => ({
+    const formattedRaces: Races[] = races.map((race) => ({
       ...race,
       date: race.date.toISOString().split('T')[0], // Formatear a 'YYYY-MM-DD'
     }));

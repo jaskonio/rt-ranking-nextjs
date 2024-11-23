@@ -1,55 +1,52 @@
 "use client"
 
 import { useEffect, useState } from "react";
-import ScoringMethodAdd from "../../scoring-method-form";
 import { useParams } from "next/navigation";
-import { ScoringMethodDetail, ScoringMethodFormPOST } from "@/type/scoring-method";
+import { Races, RacesFormAdd } from "@/type/race";
+import RaceForm from "../../race-form";
 
 
 export default function Page() {
     const { id } = useParams();
-    const [scoringMethod, setData] = useState<ScoringMethodDetail | null>(null)
+    const [race, setData] = useState<Races | null>(null)
     const [isLoading, setLoading] = useState(true)
 
     useEffect(() => {
-        fetch(`/api/scoring-method/${id}`)
+        fetch(`/api/races/${id}`)
             .then((res) => res.json())
-            .then((scoringMethods) => {
-                setData(scoringMethods)
+            .then((race) => {
+                setData(race['race'])
                 setLoading(false)
             })
     }, [])
 
     if (isLoading) return <header>Loading...</header>
-    if (!scoringMethod) return <p>No hay Método de Puntuación</p>
+    if (!race) return <p>No hay carrera</p>
 
-    const onSubmitRequest = async (payload: ScoringMethodFormPOST) => {
-        const response = await fetch(`/api/scoring-method/${id}`, {
+    const onSubmitRequest = async (payload: RacesFormAdd) => {
+        const response = await fetch(`/api/races/${id}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify(payload),
         });
-
-        const data: ScoringMethodDetail = await response.json()
-        return data
+        const jsonResponse = await response.json()
+        if (!jsonResponse['success']) throw new Error(jsonResponse['error'])
     }
-
-    scoringMethod.pointsDistribution = scoringMethod.pointsDistribution.toString()
 
     return (
         <div className="max-w-2xl mx-auto">
             <div className="text-center mb-16 space-y-4 animate-fade-in">
                 <h1 className="text-5xl font-bold text-white">
-                    Regla de puntuación
+                    Editar Carreara
                 </h1>
                 <p className="text-gray-300">
-                    Configura el metodo para calcular los puntos
+                    Configura la carrera
                 </p>
             </div>
             <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-8 shadow-xl animate-slide-in">
-                <ScoringMethodAdd defaultValues={scoringMethod} onSubmitRequest={onSubmitRequest}></ScoringMethodAdd>
+                <RaceForm defaultValues={race} onSubmitRequest={onSubmitRequest}></RaceForm>
             </div>
         </div>
     );
