@@ -33,7 +33,7 @@ export const getLeagueById = async (id: number) => {
 }
 export const getAllLeagues = async () => {
     return await prisma.league.findMany({
-        include: { participants: true, races: true, rankings: true },
+        include: { participants: true, races: true, rankings: true, scoringMethod: true },
     });
 }
 
