@@ -1,17 +1,39 @@
 import { addRaceToLeague } from "@/services/leagueService";
+import { LeagueSetRacesResponse } from "@/type/league";
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
     const leagueId = parseInt((await params).id)
-    const { raceId } = await request.json();
+    const races = await request.json() as { raceId: number, order: number }[];
 
     // Validar los datos
     // Normalización de los datos
 
-    try {
-        const race = await addRaceToLeague(leagueId, raceId)
-        return Response.json({ success: true, race });
-    } catch (error) {
-        console.error("Ocurrió un error al asignar un carrera a la liga:", error);
-        return Response.json({ success: false, error: 'Ocurrió un error al asignar una carrera a la liga' }, { status: 500 });
+    // eslint-disable-next-line prefer-const
+    let results: LeagueSetRacesResponse = {
+        success: true,
+        added: [],
+        failed: [],
+    };
+
+    for (const race of races) {
+        const { raceId, order } = race;
+
+        try {
+            const addedRace = await addRaceToLeague(leagueId, raceId, order);
+            results.added.push(addedRace);
+        } catch (error) {
+            console.error(`Error al añadir participante: RaceID=${raceId}, Order=${order}`, error);
+            results.failed.push({
+                raceId,
+                order,
+                error: error instanceof Error ? error.message : 'Error desconocido',
+            });
+        }
     }
+
+    if (results.failed.length > 0) {
+        results.success = false;
+    }
+
+    return Response.json(results);
 }

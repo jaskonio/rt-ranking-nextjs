@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -23,32 +24,17 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { Badge } from "@/components/ui/badge";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { Check, ChevronsUpDown } from "lucide-react";
-
-// Mock data - Replace with API calls
-const scoringMethods = [
-    { id: 1, name: "Standard Points", description: "Basic point system based on position" },
-    { id: 2, name: "Time Based", description: "Points calculated from finish time" },
-    { id: 3, name: "Age Graded", description: "Points adjusted for age categories" },
-];
-
-const availableRaces = [
-    { id: 1, name: "Spring Marathon 2024", date: "2024-03-15" },
-    { id: 2, name: "Summer Trail Run", date: "2024-06-20" },
-    { id: 3, name: "Autumn 10K", date: "2024-09-10" },
-];
-
-const runners = [
-    { id: 1, value: "1", label: "Sarah Johnson", category: "Elite" },
-    { id: 2, value: "2", label: "Michael Chen", category: "Elite" },
-    { id: 3, value: "3", label: "Emma Rodriguez", category: "Amateur" },
-];
+import { ScoringMethodDetail } from "@/type/scoring-method";
+import { Races } from "@/type/race";
+import { RunnerDetail } from "@/type/runner";
+import { LeagueFormProps } from "@/type/league";
 
 
 const formSchema = z.object({
@@ -57,23 +43,57 @@ const formSchema = z.object({
     endDate: z.string().min(1, "End date is required"),
     scoringMethodId: z.string().min(1, "Scoring method is required"),
     participants: z.array(z.object({
-        runnerId: z.string(),
-        bibNumber: z.string(),
+        runnerId: z.number(),
+        bibNumber: z.number(),
     })),
     races: z.array(z.object({
-        raceId: z.string(),
+        raceId: z.number(),
         order: z.number(),
     })),
 });
 
-export default function CreateLeaguePage() {
+type LeagueFormType = {
+    defaultValues: LeagueFormProps;
+    onSubmitRequest: (payload: LeagueFormProps) => Promise<void>;
+}
+export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFormType) {
+    const [isLoading, setIsLoading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
+
+    const [scoringMethods, setScoringMethods] = useState<ScoringMethodDetail[] | null>(null)
+    const [availableRaces, setAvailableRaces] = useState<Races[] | null>(null)
+    const [runners, setRunners] = useState<RunnerDetail[] | null>(null)
+
+    useEffect(() => {
+        fetch(`/api/scoring-method`)
+            .then((res) => res.json())
+            .then((scoringMethodsResponse) => {
+                setScoringMethods(scoringMethodsResponse['scoringMethods'])
+            })
+    }, [])
+    useEffect(() => {
+        fetch(`/api/races`)
+            .then((res) => res.json())
+            .then((racesResponse) => {
+                setAvailableRaces(racesResponse['races'])
+            })
+    }, [])
+    useEffect(() => {
+        fetch(`/api/runners`)
+            .then((res) => res.json())
+            .then((runnersResponse) => {
+                setRunners(runnersResponse['runners'])
+            })
+    }, [])
+
     const router = useRouter();
-    const [selectedRaces, setSelectedRaces] = useState<Array<{ id: number, name: string, order: number }>>([]);
+    const [selectedRaces, setSelectedRaces] = useState<Array<{ raceId: number, name: string, order: number }>>([]);
     const [openRunner, setOpenRunner] = useState(false);
     const [selectedParticipants, setSelectedParticipants] = useState<Array<{
-        runnerId: string,
+        runnerId: number,
         name: string,
-        bibNumber: string,
+        bibNumber: number,
+        photoUrl: string,
     }>>([]);
 
     const form = useForm<z.infer<typeof formSchema>>({
@@ -88,15 +108,37 @@ export default function CreateLeaguePage() {
         },
     });
 
+    if (!scoringMethods || !availableRaces || !runners) return <p>Error al recuperar los datos</p>
+
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
-        console.log(values);
-        router.push("/leagues");
+        values.participants = selectedParticipants
+        values.races = selectedRaces
+
+        setIsLoading(true);
+        try {
+            const payload: LeagueFormProps = {
+                name: values.name,
+                endDate: values.endDate,
+                startDate: values.startDate,
+                scoringMethodId: Number(values.scoringMethodId),
+                participants: values.participants,
+                races: values.races
+            }
+            await onSubmitRequest(payload)
+
+            router.push("/admin/leagues");
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Error desconocido'
+            setErrorMessage(message);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handleRaceSelection = (raceId: string) => {
         const race = availableRaces.find(r => r.id.toString() === raceId);
-        if (race && !selectedRaces.find(r => r.id === race.id)) {
-            setSelectedRaces([...selectedRaces, { ...race, order: selectedRaces.length + 1 }]);
+        if (race && !selectedRaces.find(r => r.raceId === race.id)) {
+            setSelectedRaces([...selectedRaces, { ...race, raceId: race.id, order: selectedRaces.length + 1 }]);
         }
     };
 
@@ -115,26 +157,27 @@ export default function CreateLeaguePage() {
         setSelectedRaces(reorderedItems);
     };
 
-    const handleParticipantAdd = (runnerId: string) => {
-        const runner = runners.find(r => r.value === runnerId);
+    const handleParticipantAdd = (runnerId: number) => {
+        const runner = runners.find(r => r.id === runnerId);
         if (runner && !selectedParticipants.find(p => p.runnerId === runnerId)) {
             setSelectedParticipants([
                 ...selectedParticipants,
                 {
                     runnerId,
-                    name: runner.label,
-                    bibNumber: '0',
+                    name: runner.name,
+                    bibNumber: 0,
+                    photoUrl: runner.photoUrl
                 },
             ]);
             setOpenRunner(false);
         }
     };
 
-    const handleBibNumberChange = (runnerId: string, newBibNumber: string) => {
+    const handleBibNumberChange = (runnerId: number, newBibNumber: string) => {
         setSelectedParticipants(
             selectedParticipants.map(p =>
                 p.runnerId === runnerId
-                    ? { ...p, bibNumber: newBibNumber }
+                    ? { ...p, bibNumber: Number(newBibNumber) }
                     : p
             )
         );
@@ -172,7 +215,7 @@ export default function CreateLeaguePage() {
                             name="startDate"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="text-white">Start Date</FormLabel>
+                                    <FormLabel className="text-white">Fecha de Inicio</FormLabel>
                                     <FormControl>
                                         <div className="relative">
                                             <Calendar className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
@@ -193,7 +236,7 @@ export default function CreateLeaguePage() {
                             name="endDate"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="text-white">End Date</FormLabel>
+                                    <FormLabel className="text-white">Fecha Fin</FormLabel>
                                     <FormControl>
                                         <div className="relative">
                                             <Calendar className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
@@ -215,13 +258,13 @@ export default function CreateLeaguePage() {
                         name="scoringMethodId"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className="text-white">Scoring Method</FormLabel>
+                                <FormLabel className="text-white">Regla de puntuación</FormLabel>
                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                     <FormControl>
                                         <div className="relative">
                                             <Calculator className="absolute left-3 top-3 h-5 w-5 text-gray-400 z-10" />
                                             <SelectTrigger className="bg-gray-700/50 border-gray-600 text-white pl-10">
-                                                <SelectValue placeholder="Select scoring method" />
+                                                <SelectValue placeholder="Selecciona regla de puntuación" />
                                             </SelectTrigger>
                                         </div>
                                     </FormControl>
@@ -261,7 +304,7 @@ export default function CreateLeaguePage() {
                                 aria-expanded={openRunner}
                                 className="w-full justify-between bg-gray-700/50 border-gray-600 text-white hover:bg-gray-600"
                             >
-                                Select runners...
+                                Selecciona participantes...
                                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                             </Button>
                         </PopoverTrigger>
@@ -274,21 +317,28 @@ export default function CreateLeaguePage() {
                                         {runners.map((runner, index) => (
                                             <CommandItem
                                                 key={index}
-                                                onSelect={() => handleParticipantAdd(runner.value)}
+                                                onSelect={() => handleParticipantAdd(runner.id)}
                                                 className=" hover:bg-gray-700"
                                             >
                                                 <Check
                                                     className={cn(
                                                         "mr-2 h-4 w-4",
-                                                        selectedParticipants.some(p => p.runnerId === runner.value)
+                                                        selectedParticipants.some(p => p.runnerId === runner.id)
                                                             ? "opacity-100"
                                                             : "opacity-0"
                                                     )}
                                                 />
-                                                {runner.label}
-                                                <Badge className="ml-2 bg-blue-500/20 text-blue-300">
-                                                    {runner.category}
-                                                </Badge>
+                                                {runner.name} {runner.surname}
+                                                <div className="flex-shrink-0 group">
+                                                    <div className="relative ml-2 w-10 h-10 rounded-full overflow-hidden ring-2 ring-white/20 ">
+                                                        <Image
+                                                            src={runner.photoUrl}
+                                                            alt={runner.name}
+                                                            fill
+                                                            className="object-cover"
+                                                        />
+                                                    </div>
+                                                </div>
                                             </CommandItem>
                                         ))}
                                     </CommandGroup>
@@ -305,6 +355,16 @@ export default function CreateLeaguePage() {
                                     className="flex items-center justify-between bg-gray-800/50 rounded-lg p-3"
                                 >
                                     <div className="flex items-center gap-3 flex-grow">
+                                        <div className="flex-shrink-0 group">
+                                            <div className="relative ml-2 w-10 h-10 rounded-full overflow-hidden ring-2 ring-white/20 ">
+                                                <Image
+                                                    src={participant.photoUrl}
+                                                    alt={participant.name}
+                                                    fill
+                                                    className="object-cover"
+                                                />
+                                            </div>
+                                        </div>
                                         <span className="text-white">{participant.name}</span>
                                         <div className="flex items-center gap-2">
                                             <span className="text-gray-400">Dorsal </span>
@@ -357,12 +417,12 @@ export default function CreateLeaguePage() {
                                     key={race.id}
                                     value={race.id.toString()}
                                     className="text-white hover:bg-gray-700"
-                                    disabled={selectedRaces.some(r => r.id === race.id)}
+                                    disabled={selectedRaces.some(r => r.raceId === race.id)}
                                 >
                                     <div className="flex justify-between items-center w-full">
                                         <span>{race.name}</span>
                                         <span className="text-sm text-gray-400">
-                                            {new Date(race.date).toLocaleDateString()}
+                                            - {new Date(race.date).toLocaleDateString()}
                                         </span>
                                     </div>
                                 </SelectItem>
@@ -381,8 +441,8 @@ export default function CreateLeaguePage() {
                                     >
                                         {selectedRaces.map((race, index) => (
                                             <Draggable
-                                                key={race.id}
-                                                draggableId={race.id.toString()}
+                                                key={race.raceId}
+                                                draggableId={race.raceId.toString()}
                                                 index={index}
                                             >
                                                 {(provided) => (
@@ -406,7 +466,7 @@ export default function CreateLeaguePage() {
                                                             size="sm"
                                                             onClick={() => {
                                                                 setSelectedRaces(
-                                                                    selectedRaces.filter(r => r.id !== race.id)
+                                                                    selectedRaces.filter(r => r.raceId !== race.raceId)
                                                                         .map((r, i) => ({ ...r, order: i + 1 }))
                                                                 );
                                                             }}
@@ -428,14 +488,17 @@ export default function CreateLeaguePage() {
 
                 <div className="flex justify-end space-x-4 pt-6">
                     <Link href="/leagues">
-                        <Button variant="outline" className="text-white border-gray-600">
+                        <Button variant="outline" className="border-gray-600">
                             Cancel
                         </Button>
                     </Link>
-                    <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
-                        Create League
+                    <Button type="submit" disabled={isLoading} className="bg-blue-600 hover:bg-blue-700">
+                        {isLoading ? "Guardando..." : "Guardar"}
                     </Button>
                 </div>
+                {errorMessage && (
+                    <p className="text-red-500 text-sm mt-2">{errorMessage}</p>
+                )}
             </form>
         </Form>
     );

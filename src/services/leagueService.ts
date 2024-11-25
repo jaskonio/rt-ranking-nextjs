@@ -58,11 +58,12 @@ export const deleteParticipant = async (participantId: number) => {
     await prisma.leagueParticipant.delete({ where: { id: participantId } });
 }
 
-export const addRaceToLeague = async (leagueId: number, raceId: number) => {
+export const addRaceToLeague = async (leagueId: number, raceId: number, order: number) => {
     return await prisma.leagueRace.create({
         data: {
             leagueId,
             raceId,
+            order
         },
     });
 }

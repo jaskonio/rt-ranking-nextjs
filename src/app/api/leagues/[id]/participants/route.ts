@@ -1,17 +1,39 @@
 import { addParticipant } from "@/services/leagueService";
+import { LeagueSetParticipantResponse } from "@/type/league";
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
     const leagueId = parseInt((await params).id)
-    const { runnerId, bibNumber } = await request.json();
+    const participants = await request.json() as { runnerId: number, bibNumber: number }[];
 
     // Validar los datos
     // Normalización de los datos
 
-    try {
-        const participant = await addParticipant(leagueId, runnerId, bibNumber)
-        return Response.json({ success: true, participant });
-    } catch (error) {
-        console.error("Ocurrió un error al asignar un participante a la liga:", error);
-        return Response.json({ success: false, error: 'Ocurrió un error al asignar un participante a la liga' }, { status: 500 });
+    // eslint-disable-next-line prefer-const
+    let results: LeagueSetParticipantResponse = {
+        success: true,
+        added: [],
+        failed: [],
+    };
+
+    for (const participant of participants) {
+        const { runnerId, bibNumber } = participant;
+
+        try {
+            const addedParticipant = await addParticipant(leagueId, runnerId, bibNumber);
+            results.added.push(addedParticipant);
+        } catch (error) {
+            console.error(`Error al añadir participante: RunnerID=${runnerId}, BibNumber=${bibNumber}`, error);
+            results.failed.push({
+                runnerId,
+                bibNumber,
+                error: error instanceof Error ? error.message : 'Error desconocido',
+            });
+        }
     }
+
+    if (results.failed.length > 0) {
+        results.success = false;
+    }
+
+    return Response.json(results);
 }

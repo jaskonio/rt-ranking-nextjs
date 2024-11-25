@@ -1,25 +1,55 @@
 "use client";
 
-import { Platform, RacesFormAdd } from "@/type/race";
 import LeagueForm from "../league-form";
+import { LeagueFormProps, LeagueResponse, LeagueSetParticipantResponse, LeagueSetRacesResponse } from "@/type/league";
 
 
 export default function NewRacePage() {
-    const defaultValues = {
+    const defaultValues: LeagueFormProps = {
         name: '',
         startDate: '',
         endDate: '',
-        scoringMethodId: 0
+        scoringMethodId: 0,
+        participants: [],
+        races: []
     }
 
-    const onSubmitRequest = async (payload: RacesFormAdd) => {
-        await fetch("/api/leagues", {
+    const onSubmitRequest = async (payload: LeagueFormProps) => {
+        const newLeagueResponse = await fetch("/api/leagues", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify(payload),
         });
+
+        const newLeagueJsonResponse: LeagueResponse = await newLeagueResponse.json()
+        if (!newLeagueJsonResponse.success) throw new Error("Error al crear la nueva Liga")
+
+        const leagueId = newLeagueJsonResponse.league.id
+        // set participants
+        const participantsResponse = await fetch(`/api/leagues/${leagueId}/participants`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload.participants),
+        });
+
+        const participantsJsonResponse: LeagueSetParticipantResponse = await participantsResponse.json()
+        if (!participantsJsonResponse.success) throw new Error("Error al asignar los nuevos participantes")
+
+        // set races
+        const racesResponse = await fetch(`/api/leagues/${leagueId}/races`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload.races),
+        });
+
+        const racesJsonResponse: LeagueSetRacesResponse = await racesResponse.json()
+        if (!racesJsonResponse.success) throw new Error("Error al asignar las nuevas carreras")
     }
 
     return (
@@ -30,7 +60,7 @@ export default function NewRacePage() {
             </div>
 
             <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-8 shadow-xl animate-slide-in">
-                <LeagueForm />
+                <LeagueForm defaultValues={defaultValues} onSubmitRequest={onSubmitRequest} />
             </div>
         </div>
 

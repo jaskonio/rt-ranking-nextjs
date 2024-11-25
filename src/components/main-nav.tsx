@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Trophy, Flag, Medal, Calculator, Activity } from "lucide-react";
+import { Trophy, Flag, Calculator, Activity } from "lucide-react";
 
 const routes = [
   {

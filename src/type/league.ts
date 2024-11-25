@@ -37,7 +37,33 @@ export type League = {
     races: LeagueRace[]
 }
 
-export type LeagueResponse = {
+export type LeagueResponses = {
     success: boolean
     leagues: League[]
+}
+
+export type LeagueResponse = {
+    success: boolean
+    league: League
+}
+
+export type LeagueFormProps = {
+    name: string;
+    startDate: string;
+    endDate: string;
+    scoringMethodId: number;
+    participants: { runnerId: number, bibNumber: number }[];
+    races: { raceId: number, order: number }[]
+}
+
+export type LeagueSetParticipantResponse = {
+    success: boolean;
+    added: { runnerId: number; bibNumber: number }[];
+    failed: { runnerId: number; bibNumber: number; error: string }[];
+}
+
+export type LeagueSetRacesResponse = {
+    success: boolean;
+    added: { id: number; leagueId: number, raceId: number, order: number }[];
+    failed: { raceId: number; order: number; error: string }[];
 }

@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { Flag, Calendar, Globe, Link as LinkIcon } from "lucide-react";
+import { Flag, Calendar, Link as LinkIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     Form,

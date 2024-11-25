@@ -21,3 +21,10 @@ export type RaceLeagueDetail = {
     category: string;
     runners: RunnerLeagueDetail[];
 };
+
+export type RunnerDetail = {
+    id: number;
+    name: string;
+    surname: string;
+    photoUrl: string;
+};

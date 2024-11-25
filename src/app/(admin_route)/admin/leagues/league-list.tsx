@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Users, Loader2, Flag } from "lucide-react";
+import { Users, Loader2, Flag, ChartNoAxesColumnDecreasing } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     Table,
@@ -136,13 +136,13 @@ export default function LeagueList({ data }: { data: League[] }) {
                         <TableCell>
                             <div className="flex items-center gap-2">
                                 <Link href={`/admin/leagues/edit/${league.id}`}>
-                                    <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+                                    <Button variant="ghost" size="sm" className="text-gray-400">
                                         Edit
                                     </Button>
                                 </Link>
                                 <Button
                                     onClick={() => handleDelete(league.id)}
-                                    variant="ghost" size="sm" className="text-red-400 hover:text-white">
+                                    variant="ghost" size="sm" className="text-red-400">
                                     Elimnar
                                 </Button>
                                 <Button
@@ -150,7 +150,7 @@ export default function LeagueList({ data }: { data: League[] }) {
                                     variant="ghost"
                                     size="sm"
                                     disabled={processingId === league.id}
-                                    className="text-blue-400 hover:text-white"
+                                    className="text-blue-400"
                                 >
                                     {processingId === league.id ? (
                                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -158,6 +158,14 @@ export default function LeagueList({ data }: { data: League[] }) {
                                         "Procesar"
                                     )}
                                 </Button>
+                                <a
+                                    href={`/league/${league.id}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-gray-400 hover:text-white"
+                                >
+                                    <ChartNoAxesColumnDecreasing className="h-4 w-4" />
+                                </a>
                             </div>
                         </TableCell>
                     </TableRow>
