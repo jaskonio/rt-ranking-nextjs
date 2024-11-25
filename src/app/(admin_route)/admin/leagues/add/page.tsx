@@ -9,7 +9,7 @@ export default function NewRacePage() {
         name: '',
         startDate: '',
         endDate: '',
-        scoringMethodId: 0,
+        scoringMethodId: '0',
         participants: [],
         races: [],
         imageContent: '',

@@ -28,3 +28,15 @@ export type RunnerDetail = {
     surname: string;
     photoUrl: string;
 };
+
+export type RunnerFormProps = {
+    name: string;
+    surname: string;
+    photoContent?: string;
+    photoUrl?: string;
+}
+
+export type RunnerResponse = {
+    success: boolean
+    runner: RunnerDetail
+}
