@@ -18,7 +18,7 @@ export default function Page() {
                 setData(race['race'])
                 setLoading(false)
             })
-    }, [])
+    }, [id])
 
     if (isLoading) return <header>Loading...</header>
     if (!race) return <p>No hay carrera</p>

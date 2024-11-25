@@ -17,7 +17,7 @@ export default function Page() {
                 setLeague(data['league'])
                 setLoading(false)
             })
-    }, [])
+    }, [leagueId])
 
     if (isLoading) return <p>Loading...</p>
     if (!league) return <p>No profile data</p>

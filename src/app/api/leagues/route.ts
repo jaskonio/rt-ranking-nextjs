@@ -22,7 +22,7 @@ export async function POST(request: Request) {
         const startDate = formData.get("startDate") as string;
         const endDate = formData.get("endDate") as string;
         const scoringMethodId = formData.get("scoringMethodId") as string;
-        const bannerFile = formData.get("imageContent") as File;
+        // const bannerFile = formData.get("imageContent") as File;
 
         // Validar los datos
         // Normalización de los datos

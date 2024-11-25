@@ -18,7 +18,7 @@ export default function Page() {
                 setData(scoringMethods)
                 setLoading(false)
             })
-    }, [])
+    }, [id])
 
     if (isLoading) return <header>Loading...</header>
     if (!scoringMethod) return <p>No hay Método de Puntuación</p>

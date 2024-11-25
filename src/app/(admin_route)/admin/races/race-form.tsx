@@ -50,8 +50,9 @@ export default function RaceForm({ defaultValues, onSubmitRequest }: RaceFormTyp
             await onSubmitRequest(payload)
 
             router.push("/admin/races");
-        } catch (error: any) {
-            setErrorMessage(error.message);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Error desconocido'
+            setErrorMessage(message);
         } finally {
             setIsLoading(false);
         }

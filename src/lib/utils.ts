@@ -8,8 +8,9 @@ export function cn(...inputs: ClassValue[]) {
 const paceToSeconds = (pace: string): number => {
   const match = pace.match(/(\d+)m(\d+)s\/km/);
   if (!match) {
-      throw new Error(`Invalid pace format: ${pace}`);
+    throw new Error(`Invalid pace format: ${pace}`);
   }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_, minutes, seconds] = match;
   return parseInt(minutes) * 60 + parseInt(seconds);
 };

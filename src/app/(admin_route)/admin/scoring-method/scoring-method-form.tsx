@@ -64,7 +64,8 @@ export default function ScoringMethodAdd({ defaultValues, onSubmitRequest }: Sco
 
             router.push('/admin/scoring-method')
         } catch (error) {
-            setErrorMessage("An unexpected error occurred.");
+            const message = error instanceof Error ? error.message : 'Error desconocido'
+            setErrorMessage(message);
         } finally {
             setIsLoading(false);
         }
