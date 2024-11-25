@@ -2,7 +2,7 @@ import prisma from '@/lib/db';
 
 export const createScoringMethod = async (data: {
   name: string;
-  description?: string;
+  description: string;
   formula: string;
   primaryAttribute: string;
   primaryOrder: string;
