@@ -7,28 +7,30 @@ import { useEffect, useState } from "react"
 
 export default function Page() {
     const { id: leagueId } = useParams();
-    const [data, setData] = useState(null)
+    const [league, setLeague] = useState(null)
     const [isLoading, setLoading] = useState(true)
 
     useEffect(() => {
         fetch(`/api/leagues/${leagueId}/history-ranking`)
             .then((res) => res.json())
             .then((data) => {
-                setData(data)
+                setLeague(data['league'])
                 setLoading(false)
             })
     }, [])
 
     if (isLoading) return <p>Loading...</p>
-    if (!data) return <p>No profile data</p>
+    if (!league) return <p>No profile data</p>
 
     return (
         <div>
             <LeaderboardPage
-                title={data['league']['name']}
+                title={league['name']}
                 subSubTitle="Circuito"
                 subTitle="2023"
-                races={data['league']['races']}></LeaderboardPage>
+                races={league['races']}
+                bannerUrl={league['photoUrl']}
+            ></LeaderboardPage>
         </div>
     );
 }

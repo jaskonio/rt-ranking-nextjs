@@ -54,6 +54,8 @@ export type LeagueFormProps = {
     scoringMethodId: number;
     participants: { runnerId: number, bibNumber: number }[];
     races: { raceId: number, order: number }[]
+    imageUrl: string
+    imageContent: string
 }
 
 export type LeagueSetParticipantResponse = {

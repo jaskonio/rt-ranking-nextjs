@@ -11,16 +11,28 @@ export default function NewRacePage() {
         endDate: '',
         scoringMethodId: 0,
         participants: [],
-        races: []
+        races: [],
+        imageContent: '',
+        imageUrl: ''
     }
 
     const onSubmitRequest = async (payload: LeagueFormProps) => {
+        const formData = new FormData();
+
+        formData.append("name", payload.name);
+        formData.append("startDate", payload.startDate);
+        formData.append("endDate", payload.endDate);
+        formData.append("scoringMethodId", payload.scoringMethodId.toString());
+
+        if (payload.imageContent) {
+            const imageBlob = await fetch(payload.imageContent).then((res) => res.blob());
+            const imageFile = new File([imageBlob], "banner.jpg", { type: imageBlob.type });
+            formData.append("imageContent", imageFile);
+        }
+
         const newLeagueResponse = await fetch("/api/leagues", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(payload),
+            body: formData,
         });
 
         const newLeagueJsonResponse: LeagueResponse = await newLeagueResponse.json()

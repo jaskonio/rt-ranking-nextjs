@@ -148,9 +148,10 @@ type LeaderboardPage = {
     title: string,
     subTitle: string,
     subSubTitle: string,
+    bannerUrl: string
     races: RaceLeagueDetail[],
 }
-export default function LeaderboardPage({ title, subTitle, subSubTitle, races }: LeaderboardPage) {
+export default function LeaderboardPage({ title, subTitle, subSubTitle, races, bannerUrl }: LeaderboardPage) {
     const [raceSelectedId, setRaceSelectedId] = useState<string>(races[0].raceId.toString())
 
     const raceSelected = useMemo(() => {
@@ -162,8 +163,8 @@ export default function LeaderboardPage({ title, subTitle, subSubTitle, races }:
 
             <div className="relative h-[400px] w-full">
                 <Image
-                    src="https://images.unsplash.com/photo-1452626038306-9aae5e071dd3"
-                    alt="Marathon"
+                    src={bannerUrl}
+                    alt={title}
                     fill
                     className="object-cover brightness-50"
                     priority

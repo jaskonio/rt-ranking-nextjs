@@ -4,7 +4,7 @@ import Image from "next/image";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { Trophy, Calendar, Calculator, Users, Flag } from "lucide-react";
+import { Trophy, Calendar, Calculator, Users, Flag, ImageIcon, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     Form,
@@ -95,6 +95,7 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
         bibNumber: number,
         photoUrl: string,
     }>>([]);
+    const [bannerPreview, setBannerPreview] = useState<string | null>(null);
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -122,7 +123,9 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
                 startDate: values.startDate,
                 scoringMethodId: Number(values.scoringMethodId),
                 participants: values.participants,
-                races: values.races
+                races: values.races,
+                imageUrl: defaultValues.imageUrl,
+                imageContent: defaultValues.imageContent
             }
             await onSubmitRequest(payload)
 
@@ -183,11 +186,70 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
         );
     };
 
+    const handleBannerUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setBannerPreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const removeBanner = () => {
+        setBannerPreview(null);
+        const input = document.getElementById('bannerImage') as HTMLInputElement;
+        if (input) input.value = '';
+    };
+
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                 {/* Basic Information */}
                 <div className="grid gap-6">
+                    {/* Banner Image Upload */}
+                    <div className="space-y-4">
+                        <FormLabel className="text-white">Banner</FormLabel>
+                        <div className="relative">
+                            {bannerPreview ? (
+                                <div className="relative w-full h-[200px] rounded-lg overflow-hidden">
+                                    <Image
+                                        src={bannerPreview}
+                                        alt="Banner preview"
+                                        fill
+                                        className="object-cover"
+                                    />
+                                    <Button
+                                        type="button"
+                                        variant="destructive"
+                                        size="icon"
+                                        className="absolute top-2 right-2"
+                                        onClick={removeBanner}
+                                    >
+                                        <X className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            ) : (
+                                <label className="flex flex-col items-center justify-center w-full h-[200px] border-2 border-dashed border-gray-600 rounded-lg cursor-pointer hover:border-gray-500 hover:bg-gray-700/30 transition-all">
+                                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                        <ImageIcon className="w-12 h-12 text-gray-400 mb-3" />
+                                        <p className="mb-2 text-sm text-gray-400">
+                                            <span className="font-semibold">Click para subir</span> or arrastra
+                                        </p>
+                                        <p className="text-xs text-gray-500">PNG, JPG or WEBP (MAX. 800x400px)</p>
+                                    </div>
+                                    <input
+                                        id="bannerImage"
+                                        type="file"
+                                        className="hidden"
+                                        accept="image/*"
+                                        onChange={handleBannerUpload}
+                                    />
+                                </label>
+                            )}
+                        </div>
+                    </div>
                     <FormField
                         control={form.control}
                         name="name"

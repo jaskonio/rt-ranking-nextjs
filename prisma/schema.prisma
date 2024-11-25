@@ -69,6 +69,7 @@ model League {
   startDate       DateTime
   endDate         DateTime
   scoringMethodId Int
+  photoUrl        String                 @default("")
   scoringMethod   ScoringMethod          @relation(fields: [scoringMethodId], references: [id])
   participants    LeagueParticipant[]
   races           LeagueRace[]

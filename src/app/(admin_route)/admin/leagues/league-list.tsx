@@ -159,7 +159,7 @@ export default function LeagueList({ data }: { data: League[] }) {
                                     )}
                                 </Button>
                                 <a
-                                    href={`/league/${league.id}`}
+                                    href={`/leagues/${league.id}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="text-gray-400 hover:text-white"

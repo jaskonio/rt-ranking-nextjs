@@ -8,13 +8,15 @@ export const createLeague = async (data: {
     startDate: Date;
     endDate: Date;
     scoringMethodId: number;
+    photoUrl: string;
+
 }) => {
     return await prisma.league.create({
         data,
     });
 }
 
-export const updateLeague = async (id: number, data: Partial<{ name: string; startDate: Date; endDate: Date; scoringMethodId: number }>) => {
+export const updateLeague = async (id: number, data: Partial<{ name: string; startDate: Date; endDate: Date; scoringMethodId: number, photoUrl: string }>) => {
     return await prisma.league.update({
         where: { id },
         data,
@@ -301,6 +303,7 @@ export const getRankingHistory = async (id: number) => {
 
     return {
         name: league.name,
+        photoUrl: league.photoUrl,
         races
     }
 }
