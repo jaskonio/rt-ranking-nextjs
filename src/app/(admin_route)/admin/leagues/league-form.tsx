@@ -95,18 +95,38 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
         bibNumber: number,
         photoUrl: string,
     }>>([]);
-    const [bannerPreview, setBannerPreview] = useState<string | null>(null);
+
+    const [bannerPreview, setBannerPreview] = useState<string | null>(defaultValues.imageContent || defaultValues.imageUrl || null);
+
+    useEffect(() => {
+        const searchDefaultSelectedRace = defaultValues.races.map((dr) => {
+            const race = availableRaces?.find(ar => ar.id == dr.raceId)
+
+            return {
+                ...dr,
+                name: race?.name ?? 'xxxxxxx'
+            }
+        })
+        setSelectedRaces(searchDefaultSelectedRace)
+    }, [availableRaces, defaultValues.races])
+
+    useEffect(() => {
+        const searchDefaultSelectedParticipant = defaultValues.participants.map((dp) => {
+            const participant = runners?.find(ar => ar.id == dp.runnerId)
+
+            return {
+                runnerId: participant?.id ?? 0,
+                name: participant?.name ?? '',
+                bibNumber: dp.bibNumber,
+                photoUrl: participant?.photoUrl ?? ''
+            }
+        })
+        setSelectedParticipants(searchDefaultSelectedParticipant)
+    }, [runners, defaultValues.participants])
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
-        defaultValues: {
-            name: "",
-            startDate: "",
-            endDate: "",
-            scoringMethodId: "",
-            participants: [],
-            races: [],
-        },
+        defaultValues: defaultValues,
     });
 
     if (!scoringMethods || !availableRaces || !runners) return <p>Error al recuperar los datos</p>
@@ -121,7 +141,7 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
                 name: values.name,
                 endDate: values.endDate,
                 startDate: values.startDate,
-                scoringMethodId: Number(values.scoringMethodId),
+                scoringMethodId: values.scoringMethodId,
                 participants: values.participants,
                 races: values.races,
                 imageUrl: defaultValues.imageUrl,
@@ -516,7 +536,7 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
                                                     >
                                                         <div className="flex items-center gap-3">
                                                             <Badge className="bg-blue-500/20 text-blue-300">
-                                                                Race {race.order}
+                                                                Carrera {race.order}
                                                             </Badge>
                                                             <span className="text-white">{race.name}</span>
                                                             {/* <span className="text-gray-400">

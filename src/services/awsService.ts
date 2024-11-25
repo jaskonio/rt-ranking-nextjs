@@ -12,3 +12,8 @@ export const uploadToS3 = async (file: Buffer, fileName: string) => {
     console.log(`${file}- ${fileName}`)
     return "https://i.pravatar.cc/300"; // Devuelve la URL de la imagen
 };
+
+
+export const saveBannerContent = async () => {
+    return 'https://images.unsplash.com/photo-1452626038306-9aae5e071dd3'
+}

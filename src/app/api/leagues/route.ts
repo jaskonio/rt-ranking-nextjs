@@ -1,14 +1,17 @@
+import { saveBannerContent } from "@/services/awsService";
 import { createLeague, getAllLeagues } from "@/services/leagueService";
-
-const saveBannerContent = async () => {
-    return 'https://images.unsplash.com/photo-1452626038306-9aae5e071dd3'
-}
 
 export async function GET() {
     try {
         const leagues = await getAllLeagues()
-
-        return Response.json({ success: true, leagues });
+        const formattedLeagues = leagues.map((l) => {
+            return {
+                ...l,
+                startDate: l.startDate.toISOString().split('T')[0], // Formatear a 'YYYY-MM-DD'
+                endDate: l.endDate.toISOString().split('T')[0], // Formatear a 'YYYY-MM-DD'
+            }
+        })
+        return Response.json({ success: true, leagues: formattedLeagues });
     } catch (error) {
         console.error("Ocurrió un error al obtener las ligas:", error);
         return Response.json({ success: false, error: 'Error al obtener las ligas' }, { status: 500 });

@@ -131,7 +131,7 @@ model LeagueRankingHistory {
 model ScoringMethod {
   id                 Int      @id @default(autoincrement())
   name               String
-  description        String?
+  description        String
   formula            String
   primaryAttribute   String
   primaryOrder       String

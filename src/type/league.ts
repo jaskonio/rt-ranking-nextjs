@@ -31,6 +31,7 @@ export type League = {
     name: string;
     startDate: string;
     endDate: string;
+    photoUrl: string;
     scoringMethodId: number
     scoringMethod: ScoringMethod;
     participants: LeagueParticipant[]
@@ -51,7 +52,7 @@ export type LeagueFormProps = {
     name: string;
     startDate: string;
     endDate: string;
-    scoringMethodId: number;
+    scoringMethodId: string;
     participants: { runnerId: number, bibNumber: number }[];
     races: { raceId: number, order: number }[]
     imageUrl: string

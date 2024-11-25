@@ -30,7 +30,7 @@ export const deleteLeague = async (id: number) => {
 export const getLeagueById = async (id: number) => {
     return await prisma.league.findUnique({
         where: { id },
-        include: { participants: true, races: true, rankings: true, rankingHistory: true },
+        include: { participants: true, races: true, rankings: true, scoringMethod: true, rankingHistory: true },
     });
 }
 export const getAllLeagues = async () => {
