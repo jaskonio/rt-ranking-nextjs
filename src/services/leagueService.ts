@@ -56,6 +56,16 @@ export const updateParticipant = async (participantId: number, data: Partial<{ r
     });
 }
 
+export async function disqualifyParticipant(participantId: number, raceOrder: number) {
+    await prisma.leagueParticipant.update({
+        where: { id: participantId },
+        data: { disqualified_at_race_order: raceOrder },
+    });
+
+    // Recalcular clasificación para reflejar la descalificación
+    // await recalculateLeagueRankings(leagueId);
+}
+
 export const deleteParticipant = async (participantId: number) => {
     await prisma.leagueParticipant.delete({ where: { id: participantId } });
 }
@@ -169,9 +179,9 @@ export const generateLeagueRanking = async (leagueId: number) => {
 
     // Guardar race rankings
     await prisma.$transaction([
-        prisma.leagueRanking.deleteMany({ where: { leagueId: leagueId } }),
+        prisma.leagueRanking.deleteMany({ where: { leagueId } }),
         prisma.leagueRanking.createMany({ data: rankings }),
-        prisma.leagueRankingHistory.deleteMany({ where: { leagueId: leagueId } }),
+        prisma.leagueRankingHistory.deleteMany({ where: { leagueId } }),
         prisma.leagueRankingHistory.createMany({ data: globalRankingsArray })
     ])
 

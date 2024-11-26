@@ -78,14 +78,15 @@ model League {
 }
 
 model LeagueParticipant {
-  id                 Int                    @id @default(autoincrement())
-  leagueId           Int
-  runnerId           Int
-  bibNumber          Int
-  league             League                 @relation(fields: [leagueId], references: [id])
-  runner             Runner                 @relation(fields: [runnerId], references: [id])
-  individualRankings LeagueRanking[]
-  rankingHistories   LeagueRankingHistory[]
+  id                         Int                    @id @default(autoincrement())
+  leagueId                   Int
+  runnerId                   Int
+  bibNumber                  Int
+  disqualified_at_race_order Int?
+  league                     League                 @relation(fields: [leagueId], references: [id])
+  runner                     Runner                 @relation(fields: [runnerId], references: [id])
+  individualRankings         LeagueRanking[]
+  rankingHistories           LeagueRankingHistory[]
 }
 
 model LeagueRace {
