@@ -50,6 +50,10 @@ const formSchema = z.object({
         raceId: z.number(),
         order: z.number(),
     })),
+    disqualifiedRaces: z.array(z.object({
+        raceId: z.number(),
+        runnerId: z.number(),
+    })),
 });
 
 type LeagueFormType = {
@@ -88,6 +92,8 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
 
     const router = useRouter();
     const [selectedRaces, setSelectedRaces] = useState<Array<{ raceId: number, name: string, order: number }>>([]);
+    const [selectedDisqualifiedRaces, setSelectedDisqualifiedRaces] = useState<Array<{ raceId: number, runnerId: number }>>([]);
+
     const [openRunner, setOpenRunner] = useState(false);
     const [selectedParticipants, setSelectedParticipants] = useState<Array<{
         runnerId: number,
@@ -134,6 +140,7 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         values.participants = selectedParticipants
         values.races = selectedRaces
+        values.disqualifiedRaces = selectedDisqualifiedRaces
 
         setIsLoading(true);
         try {
@@ -162,6 +169,15 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
         const race = availableRaces.find(r => r.id.toString() === raceId);
         if (race && !selectedRaces.find(r => r.raceId === race.id)) {
             setSelectedRaces([...selectedRaces, { ...race, raceId: race.id, order: selectedRaces.length + 1 }]);
+        }
+    };
+
+    const handleDisqualifiedRaceSelection = (raceId: string, runnerId: number) => {
+        console.log(raceId, runnerId)
+        const race = availableRaces.find(r => r.id.toString() === raceId);
+
+        if (race && !selectedDisqualifiedRaces.find(r => r.raceId === race.id)) {
+            setSelectedDisqualifiedRaces([...selectedDisqualifiedRaces, { ...race, raceId: race.id, runnerId: runnerId }]);
         }
     };
 
@@ -457,6 +473,32 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
                                                 className="w-24 bg-gray-700/50 border-gray-600 text-white"
                                                 min="0"
                                             />
+                                        </div>
+
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-gray-400">Descalificar desde la carrera </span>
+
+                                            <Select onValueChange={(raceId) => handleDisqualifiedRaceSelection(raceId, participant.runnerId)}>
+                                                <div className="relative">
+                                                    <Flag className="absolute left-3 top-3 h-5 w-5 text-gray-400 z-10" />
+                                                    <SelectTrigger className="bg-gray-700/50 border-gray-600 text-white pl-10">
+                                                        <SelectValue placeholder="Selecciona una carrera" />
+                                                    </SelectTrigger>
+                                                </div>
+                                                <SelectContent className="bg-gray-800 border-gray-700">
+                                                    {selectedRaces.map((race) => (
+                                                        <SelectItem
+                                                            key={race.raceId}
+                                                            value={race.raceId.toString()}
+                                                            className="text-white hover:bg-gray-700"
+                                                        >
+                                                            <div className="flex justify-between items-center w-full">
+                                                                <span>{race.name} - {race.order}</span>
+                                                            </div>
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
                                         </div>
                                     </div>
                                     <Button
