@@ -57,6 +57,7 @@ export type LeagueFormProps = {
     races: { raceId: number, order: number }[]
     imageUrl: string
     imageContent: string
+    disqualifiedRaces: { runnerId: number, raceOrder: number }[];
 }
 
 export type LeagueSetParticipantResponse = {
@@ -69,4 +70,10 @@ export type LeagueSetRacesResponse = {
     success: boolean;
     added: { id: number; leagueId: number, raceId: number, order: number }[];
     failed: { raceId: number; order: number; error: string }[];
+}
+
+export type LeagueSetDisqualifyParticipantResponse = {
+    success: boolean;
+    added: { runnerId: number; raceOrder: number }[];
+    failed: { runnerId: number; raceOrder: number; error: string }[];
 }

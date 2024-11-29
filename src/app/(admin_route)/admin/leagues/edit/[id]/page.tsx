@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import LeagueForm from "../../league-form";
-import { League, LeagueFormProps, LeagueResponse, LeagueSetParticipantResponse, LeagueSetRacesResponse } from "@/type/league";
+import { League, LeagueFormProps, LeagueResponse, LeagueSetDisqualifyParticipantResponse, LeagueSetParticipantResponse, LeagueSetRacesResponse } from "@/type/league";
 
 
 export default function Page() {
@@ -32,9 +32,12 @@ export default function Page() {
         races: league.races.map((r) => { return { order: r.order, raceId: r.raceId } }),
         imageContent: '',
         imageUrl: league.photoUrl,
+        disqualifiedRaces: []
     }
 
     const onSubmitRequest = async (payload: LeagueFormProps) => {
+        console.log(payload)
+
         const formData = new FormData();
 
         formData.append("name", payload.name);
@@ -48,7 +51,9 @@ export default function Page() {
             formData.append("imageContent", imageFile);
         }
 
-        const newLeagueResponse = await fetch("/api/leagues", {
+        const leagueId = id
+
+        const newLeagueResponse = await fetch(`/api/leagues/${leagueId}`, {
             method: "PUT",
             body: formData,
         });
@@ -56,7 +61,7 @@ export default function Page() {
         const newLeagueJsonResponse: LeagueResponse = await newLeagueResponse.json()
         if (!newLeagueJsonResponse.success) throw new Error("Error al crear la nueva Liga")
 
-        const leagueId = newLeagueJsonResponse.league.id
+
         // set participants
         const participantsResponse = await fetch(`/api/leagues/${leagueId}/participants`, {
             method: "PUT",
@@ -80,10 +85,22 @@ export default function Page() {
 
         const racesJsonResponse: LeagueSetRacesResponse = await racesResponse.json()
         if (!racesJsonResponse.success) throw new Error("Error al asignar las nuevas carreras")
+
+        // set disqualified runner
+        const disqualifiedResponse = await fetch(`/api/leagues/${leagueId}/disqualified`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload.disqualifiedRaces),
+        });
+
+        const disqualifiedJsonResponse: LeagueSetDisqualifyParticipantResponse = await disqualifiedResponse.json()
+        if (!disqualifiedJsonResponse.success) throw new Error("Error al descalificar runner")
     }
 
     return (
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-4xl mx-auto">
             <div className="text-center mb-16 space-y-4 animate-fade-in">
                 <h1 className="text-5xl font-bold text-white">
                     Editar Liga

@@ -51,8 +51,8 @@ const formSchema = z.object({
         order: z.number(),
     })),
     disqualifiedRaces: z.array(z.object({
-        raceId: z.number(),
         runnerId: z.number(),
+        raceOrder: z.number()
     })),
 });
 
@@ -92,7 +92,7 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
 
     const router = useRouter();
     const [selectedRaces, setSelectedRaces] = useState<Array<{ raceId: number, name: string, order: number }>>([]);
-    const [selectedDisqualifiedRaces, setSelectedDisqualifiedRaces] = useState<Array<{ raceId: number, runnerId: number }>>([]);
+    const [selectedDisqualifiedRaces, setSelectedDisqualifiedRaces] = useState<Array<{ runnerId: number, raceOrder: number }>>([]);
 
     const [openRunner, setOpenRunner] = useState(false);
     const [selectedParticipants, setSelectedParticipants] = useState<Array<{
@@ -152,8 +152,10 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
                 participants: values.participants,
                 races: values.races,
                 imageUrl: defaultValues.imageUrl,
-                imageContent: defaultValues.imageContent
+                imageContent: defaultValues.imageContent,
+                disqualifiedRaces: values.disqualifiedRaces
             }
+
             await onSubmitRequest(payload)
 
             router.push("/admin/leagues");
@@ -174,10 +176,11 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
 
     const handleDisqualifiedRaceSelection = (raceId: string, runnerId: number) => {
         console.log(raceId, runnerId)
-        const race = availableRaces.find(r => r.id.toString() === raceId);
 
-        if (race && !selectedDisqualifiedRaces.find(r => r.raceId === race.id)) {
-            setSelectedDisqualifiedRaces([...selectedDisqualifiedRaces, { ...race, raceId: race.id, runnerId: runnerId }]);
+        const race = selectedRaces.find(r => r.raceId === parseInt(raceId))
+
+        if (race) {
+            setSelectedDisqualifiedRaces([...selectedDisqualifiedRaces, { runnerId: runnerId, raceOrder: race.order }]);
         }
     };
 

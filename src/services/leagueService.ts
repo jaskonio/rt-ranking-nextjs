@@ -56,13 +56,16 @@ export const updateParticipant = async (participantId: number, data: Partial<{ r
     });
 }
 
-export async function disqualifyParticipant(participantId: number, raceOrder: number) {
-    await prisma.leagueParticipant.update({
-        where: { id: participantId },
-        data: { disqualified_at_race_order: raceOrder },
+export async function disqualifyParticipant(leagueId: number, runnerId: number, raceOrder: number) {
+    const result = await prisma.leagueParticipant.findFirst({
+        where: { leagueId: leagueId, runnerId: runnerId },
     });
 
-    // Recalcular clasificación para reflejar la descalificación
+    await prisma.leagueParticipant.update({
+        where: { id: result?.id },
+        data: { disqualified_at_race_order: raceOrder }
+    });
+
     // await recalculateLeagueRankings(leagueId);
 }
 
