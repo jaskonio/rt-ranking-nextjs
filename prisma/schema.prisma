@@ -82,7 +82,7 @@ model LeagueParticipant {
   leagueId                   Int
   runnerId                   Int
   bibNumber                  Int
-  disqualified_at_race_order Int?
+  disqualified_at_race_order Int                    @default(9999)
   league                     League                 @relation(fields: [leagueId], references: [id])
   runner                     Runner                 @relation(fields: [runnerId], references: [id])
   individualRankings         LeagueRanking[]

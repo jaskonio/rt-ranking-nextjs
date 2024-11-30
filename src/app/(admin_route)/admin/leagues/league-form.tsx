@@ -43,17 +43,16 @@ const formSchema = z.object({
     endDate: z.string().min(1, "End date is required"),
     scoringMethodId: z.string().min(1, "Scoring method is required"),
     participants: z.array(z.object({
+        id: z.number(),
         runnerId: z.number(),
         bibNumber: z.number(),
+        disqualified_at_race_order: z.number().optional()
     })),
     races: z.array(z.object({
+        id: z.number(),
         raceId: z.number(),
         order: z.number(),
-    })),
-    disqualifiedRaces: z.array(z.object({
-        runnerId: z.number(),
-        raceOrder: z.number()
-    })),
+    }))
 });
 
 type LeagueFormType = {
@@ -62,11 +61,21 @@ type LeagueFormType = {
 }
 export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFormType) {
     const [isLoading, setIsLoading] = useState(false);
+    const [isRunnersRequests, SetIsRunnersRequests] = useState(true);
+
     const [errorMessage, setErrorMessage] = useState("");
 
     const [scoringMethods, setScoringMethods] = useState<ScoringMethodDetail[] | null>(null)
     const [availableRaces, setAvailableRaces] = useState<Races[] | null>(null)
     const [runners, setRunners] = useState<RunnerDetail[] | null>(null)
+    const [selectedParticipants, setSelectedParticipants] = useState<Array<{
+        id: number,
+        runnerId: number,
+        name: string,
+        bibNumber: number,
+        photoUrl: string,
+        disqualified_at_race_order?: number
+    }>>([]);
 
     useEffect(() => {
         fetch(`/api/scoring-method`)
@@ -87,20 +96,20 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
             .then((res) => res.json())
             .then((runnersResponse) => {
                 setRunners(runnersResponse['runners'])
+                SetIsRunnersRequests(false)
             })
     }, [])
 
     const router = useRouter();
-    const [selectedRaces, setSelectedRaces] = useState<Array<{ raceId: number, name: string, order: number }>>([]);
-    const [selectedDisqualifiedRaces, setSelectedDisqualifiedRaces] = useState<Array<{ runnerId: number, raceOrder: number }>>([]);
+    const [selectedRaces, setSelectedRaces] = useState<Array<{
+        id: number,
+        raceId: number,
+        name: string,
+        order: number
+    }>>([]);
 
     const [openRunner, setOpenRunner] = useState(false);
-    const [selectedParticipants, setSelectedParticipants] = useState<Array<{
-        runnerId: number,
-        name: string,
-        bibNumber: number,
-        photoUrl: string,
-    }>>([]);
+
 
     const [bannerPreview, setBannerPreview] = useState<string | null>(defaultValues.imageContent || defaultValues.imageUrl || null);
 
@@ -121,10 +130,12 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
             const participant = runners?.find(ar => ar.id == dp.runnerId)
 
             return {
+                id: dp.id,
                 runnerId: participant?.id ?? 0,
                 name: participant?.name ?? '',
                 bibNumber: dp.bibNumber,
-                photoUrl: participant?.photoUrl ?? ''
+                photoUrl: participant?.photoUrl ?? '',
+                disqualified_at_race_order: dp.disqualified_at_race_order
             }
         })
         setSelectedParticipants(searchDefaultSelectedParticipant)
@@ -135,12 +146,16 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
         defaultValues: defaultValues,
     });
 
+    if (isRunnersRequests) return <header>Loading...</header>
     if (!scoringMethods || !availableRaces || !runners) return <p>Error al recuperar los datos</p>
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
+        console.log('onSubmit')
+        console.log(values)
+
         values.participants = selectedParticipants
         values.races = selectedRaces
-        values.disqualifiedRaces = selectedDisqualifiedRaces
+        // values.disqualifiedRaces = selectedDisqualifiedRaces
 
         setIsLoading(true);
         try {
@@ -153,15 +168,15 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
                 races: values.races,
                 imageUrl: defaultValues.imageUrl,
                 imageContent: defaultValues.imageContent,
-                disqualifiedRaces: values.disqualifiedRaces
             }
 
             await onSubmitRequest(payload)
 
             router.push("/admin/leagues");
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Error desconocido'
-            setErrorMessage(message);
+            const message = error instanceof Error
+            console.error(message)
+            setErrorMessage('Error al guardar');
         } finally {
             setIsLoading(false);
         }
@@ -174,13 +189,15 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
         }
     };
 
-    const handleDisqualifiedRaceSelection = (raceId: string, runnerId: number) => {
-        console.log(raceId, runnerId)
+    const handleDisqualifiedRaceSelection = (participantId: number, raceId: string) => {
+        console.log(`participantId: ${participantId}. raceId: ${raceId}`)
 
         const race = selectedRaces.find(r => r.raceId === parseInt(raceId))
-
-        if (race) {
-            setSelectedDisqualifiedRaces([...selectedDisqualifiedRaces, { runnerId: runnerId, raceOrder: race.order }]);
+        const participant = selectedParticipants.find(p => p.id == participantId)
+        const selectedParticipantsWhioutCurrentParticipant = selectedParticipants.filter(p => p.id != participantId)
+        if (participant) {
+            participant.disqualified_at_race_order = race?.order ?? undefined
+            setSelectedParticipants([...selectedParticipantsWhioutCurrentParticipant, participant]);
         }
     };
 
@@ -202,27 +219,28 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
     const handleParticipantAdd = (runnerId: number) => {
         const runner = runners.find(r => r.id === runnerId);
         if (runner && !selectedParticipants.find(p => p.runnerId === runnerId)) {
-            setSelectedParticipants([
-                ...selectedParticipants,
-                {
-                    runnerId,
-                    name: runner.name,
-                    bibNumber: 0,
-                    photoUrl: runner.photoUrl
-                },
-            ]);
+            // setSelectedParticipants([
+            //     ...selectedParticipants,
+            //     {
+            //         id: runner.id,
+            //         runnerId: runnerId,
+            //         name: runner.name,
+            //         bibNumber: 0,
+            //         photoUrl: runner.photoUrl
+            //     },
+            // ]);
             setOpenRunner(false);
         }
     };
 
     const handleBibNumberChange = (runnerId: number, newBibNumber: string) => {
-        setSelectedParticipants(
-            selectedParticipants.map(p =>
-                p.runnerId === runnerId
-                    ? { ...p, bibNumber: Number(newBibNumber) }
-                    : p
-            )
-        );
+        // setSelectedParticipants(
+        //     selectedParticipants.map(p =>
+        //         p.runnerId === runnerId
+        //             ? { ...p, bibNumber: Number(newBibNumber) }
+        //             : p
+        //     )
+        // );
     };
 
     const handleBannerUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -452,18 +470,18 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
                         <div className="bg-gray-700/30 rounded-lg p-4 space-y-2">
                             {selectedParticipants.map((participant) => (
                                 <div
-                                    key={participant.runnerId}
+                                    key={participant.id}
                                     className="flex items-center justify-between bg-gray-800/50 rounded-lg p-3"
                                 >
                                     <div className="flex items-center gap-3 flex-grow">
                                         <div className="flex-shrink-0 group">
                                             <div className="relative ml-2 w-10 h-10 rounded-full overflow-hidden ring-2 ring-white/20 ">
-                                                <Image
+                                                {/* <Image
                                                     src={participant.photoUrl}
                                                     alt={participant.name}
                                                     fill
                                                     className="object-cover"
-                                                />
+                                                /> */}
                                             </div>
                                         </div>
                                         <span className="text-white">{participant.name}</span>
@@ -481,7 +499,7 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
                                         <div className="flex items-center gap-2">
                                             <span className="text-gray-400">Descalificar desde la carrera </span>
 
-                                            <Select onValueChange={(raceId) => handleDisqualifiedRaceSelection(raceId, participant.runnerId)}>
+                                            <Select onValueChange={(raceId) => handleDisqualifiedRaceSelection(participant.id, raceId)}>
                                                 <div className="relative">
                                                     <Flag className="absolute left-3 top-3 h-5 w-5 text-gray-400 z-10" />
                                                     <SelectTrigger className="bg-gray-700/50 border-gray-600 text-white pl-10">

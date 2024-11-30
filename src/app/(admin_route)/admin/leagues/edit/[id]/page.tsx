@@ -28,11 +28,23 @@ export default function Page() {
         startDate: league.startDate,
         endDate: league.endDate,
         scoringMethodId: league.scoringMethodId.toString(),
-        participants: league.participants.map((p) => { return { bibNumber: p.bibNumber, runnerId: p.runnerId } }),
-        races: league.races.map((r) => { return { order: r.order, raceId: r.raceId } }),
+        participants: league.participants.map((p) => {
+            return {
+                id: p.id,
+                runnerId: p.runnerId,
+                bibNumber: p.bibNumber,
+                disqualified_at_race_order: p.disqualified_at_race_order
+            }
+        }),
+        races: league.races.map((r) => {
+            return {
+                id: r.id,
+                raceId: r.raceId,
+                order: r.order
+            }
+        }),
         imageContent: '',
         imageUrl: league.photoUrl,
-        disqualifiedRaces: []
     }
 
     const onSubmitRequest = async (payload: LeagueFormProps) => {
@@ -87,17 +99,19 @@ export default function Page() {
         if (!racesJsonResponse.success) throw new Error("Error al asignar las nuevas carreras")
 
         // set disqualified runner
-        const disqualifiedResponse = await fetch(`/api/leagues/${leagueId}/disqualified`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(payload.disqualifiedRaces),
-        });
+        // const disqualifiedResponse = await fetch(`/api/leagues/${leagueId}/disqualified`, {
+        //     method: "PUT",
+        //     headers: {
+        //         "Content-Type": "application/json",
+        //     },
+        //     body: JSON.stringify(payload.disqualifiedRaces),
+        // });
 
-        const disqualifiedJsonResponse: LeagueSetDisqualifyParticipantResponse = await disqualifiedResponse.json()
-        if (!disqualifiedJsonResponse.success) throw new Error("Error al descalificar runner")
+        // const disqualifiedJsonResponse: LeagueSetDisqualifyParticipantResponse = await disqualifiedResponse.json()
+        // if (!disqualifiedJsonResponse.success) throw new Error("Error al descalificar runner")
     }
+
+    console.log(defaultValues)
 
     return (
         <div className="max-w-4xl mx-auto">

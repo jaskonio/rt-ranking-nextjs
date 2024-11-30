@@ -13,7 +13,8 @@ export default function NewRacePage() {
         participants: [],
         races: [],
         imageContent: '',
-        imageUrl: ''
+        imageUrl: '',
+        disqualifiedRaces: []
     }
 
     const onSubmitRequest = async (payload: LeagueFormProps) => {

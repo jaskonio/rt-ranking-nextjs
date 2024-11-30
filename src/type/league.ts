@@ -3,6 +3,7 @@ export type LeagueParticipant = {
     leagueId: number;
     runnerId: number;
     bibNumber: number;
+    disqualified_at_race_order: number;
 }
 
 export type LeagueRace = {
@@ -53,11 +54,10 @@ export type LeagueFormProps = {
     startDate: string;
     endDate: string;
     scoringMethodId: string;
-    participants: { runnerId: number, bibNumber: number }[];
-    races: { raceId: number, order: number }[]
+    participants: { id: number, runnerId: number, bibNumber: number, disqualified_at_race_order?: number }[];
+    races: { id: number, raceId: number, order: number }[]
     imageUrl: string
     imageContent: string
-    disqualifiedRaces: { runnerId: number, raceOrder: number }[];
 }
 
 export type LeagueSetParticipantResponse = {
