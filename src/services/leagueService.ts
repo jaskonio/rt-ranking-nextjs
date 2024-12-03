@@ -35,9 +35,16 @@ export const getLeagueById = async (id: number) => {
         include: { participants: true, races: true, rankings: true, scoringMethod: true, rankingHistory: true },
     });
 }
+
 export const getAllLeagues = async () => {
     return await prisma.league.findMany({
-        include: { participants: true, races: true, rankings: true, scoringMethod: true },
+        include: {
+            participants: true,
+            races: true,
+            rankings: true,
+            rankingHistory: true,
+            scoringMethod: true
+        },
     });
 }
 
@@ -58,7 +65,6 @@ export const updateParticipant = async (participantId: number, data: Partial<{ r
         data,
     });
 }
-
 
 export const deleteParticipant = async (participantId: number) => {
     await prisma.leagueParticipant.delete({ where: { id: participantId } });
@@ -164,7 +170,7 @@ export const generateLeagueRanking = async (leagueId: number) => {
         rankings.push(...raceRankings);
 
         // Guardar el global
-        const globalRankingList = Array.from(globalRanking.entries())
+        const globalRankingList = Array.from(globalRanking.entries()).sort((a, b) => (a[1].points < b[1].points) ? 1 : -1)
 
         const currentGlobalRanking = []
         let index = 1
@@ -172,27 +178,20 @@ export const generateLeagueRanking = async (leagueId: number) => {
             const globalRankingParticipantId = globalRankingParticipant[0]
             const globalRankingParticipantData = globalRankingParticipant[1]
 
-            if (leagueParticipants.map(l => l.id).includes(globalRankingParticipantId)) {
-                console.log("el participante esta el leagueParticipants")
+            currentGlobalRanking.push({
+                raceId: race.id,
+                leagueId: leagueId,
+                participantId: globalRankingParticipantId,
+                position: index,
+                points: globalRankingParticipantData.points,
+                top5Finishes: globalRankingParticipantData.top5Finishes,
+                numberParticipantion: globalRankingParticipantData.participations,
+                bestRealPace: globalRankingParticipantData.bestRealPace,
+                bestPosition: globalRankingParticipantData.bestPosition,
+                previousPosition: globalRankingParticipantData.previousPosition
+            })
 
-                currentGlobalRanking.push(
-                    {
-                        raceId: race.id,
-                        leagueId: leagueId,
-                        participantId: globalRankingParticipantId,
-                        position: index,
-                        points: globalRankingParticipantData.points,
-                        top5Finishes: globalRankingParticipantData.top5Finishes,
-                        numberParticipantion: globalRankingParticipantData.participations,
-                        bestRealPace: globalRankingParticipantData.bestRealPace,
-                        bestPosition: globalRankingParticipantData.bestPosition,
-                        previousPosition: globalRankingParticipantData.previousPosition
-                    }
-                )
-                index += 1
-            } else {
-                console.log("el participante no esta el leagueParticipants")
-            }
+            index += 1
         }
 
         globalRankingsArray.push(...currentGlobalRanking)
@@ -327,10 +326,12 @@ export const getRankingHistory = async (id: number) => {
         })
     })
 
-    const races = Array.from(racesMap, ([raceId, data]) => ({
-        raceId,
-        ...data
-    }))
+    const races = Array.from(racesMap, ([raceId, data]) => {
+        return {
+            raceId,
+            ...data
+        }
+    })
 
     const data: LeagueHistoryRanking = {
         name: league.name,
