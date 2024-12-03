@@ -49,7 +49,7 @@ const formSchema = z.object({
         disqualified_at_race_order: z.number().optional()
     })),
     races: z.array(z.object({
-        id: z.number(),
+        id: z.number().optional(),
         raceId: z.number(),
         order: z.number(),
     }))
@@ -102,7 +102,7 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
 
     const router = useRouter();
     const [selectedRaces, setSelectedRaces] = useState<Array<{
-        id: number,
+        id?: number,
         raceId: number,
         name: string,
         order: number
@@ -168,6 +168,7 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
                 imageUrl: defaultValues.imageUrl,
                 imageContent: defaultValues.imageContent,
             }
+            console.log(payload)
 
             await onSubmitRequest(payload)
 
@@ -183,8 +184,22 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
 
     const handleRaceSelection = (raceId: string) => {
         const race = availableRaces.find(r => r.id.toString() === raceId);
-        if (race && !selectedRaces.find(r => r.raceId === race.id)) {
-            setSelectedRaces([...selectedRaces, { ...race, raceId: race.id, order: selectedRaces.length + 1 }]);
+        const leagueRace = defaultValues.races.find(r => r.raceId == Number(raceId))
+        if (race && leagueRace) {
+            setSelectedRaces([...selectedRaces, {
+                id: leagueRace.id,
+                name: race.name,
+                order: selectedRaces.length + 1,
+                raceId: race.id
+            }]);
+        }
+
+        if (race && !leagueRace) {
+            setSelectedRaces([...selectedRaces, {
+                name: race.name,
+                order: selectedRaces.length + 1,
+                raceId: race.id
+            }]);
         }
     };
 
@@ -475,12 +490,12 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
                                     <div className="flex items-center gap-3 flex-grow">
                                         <div className="flex-shrink-0 group">
                                             <div className="relative ml-2 w-10 h-10 rounded-full overflow-hidden ring-2 ring-white/20 ">
-                                                <Image
+                                                {/* <Image
                                                     src={participant.photoUrl}
                                                     alt={participant.name}
                                                     fill
                                                     className="object-cover"
-                                                />
+                                                /> */}
                                             </div>
                                         </div>
                                         <span className="text-white">{participant.name}</span>
@@ -598,7 +613,7 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
                                                     >
                                                         <div className="flex items-center gap-3">
                                                             <Badge className="bg-blue-500/20 text-blue-300">
-                                                                Carrera {race.order}
+                                                                Carrera {index + 1}
                                                             </Badge>
                                                             <span className="text-white">{race.name}</span>
                                                             {/* <span className="text-gray-400">

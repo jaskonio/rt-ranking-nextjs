@@ -71,6 +71,13 @@ export const addRaceToLeague = async (leagueId: number, raceId: number, order: n
     });
 }
 
+export const updateLeagueRace = async (leagueRaceId: number, data: Partial<{ leagueId: number, raceId: number, order: number }>) => {
+    return await prisma.leagueRace.update({
+        where: { id: leagueRaceId },
+        data
+    });
+}
+
 export const removeRaceFromLeague = async (leagueRaceId: number) => {
     await prisma.leagueRace.delete({ where: { id: leagueRaceId } });
 }

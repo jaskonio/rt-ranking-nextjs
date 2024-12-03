@@ -55,7 +55,7 @@ export type LeagueFormProps = {
     endDate: string;
     scoringMethodId: string;
     participants: { id: number, runnerId: number, bibNumber: number, disqualified_at_race_order?: number }[];
-    races: { id: number, raceId: number, order: number }[]
+    races: { id?: number, raceId: number, order: number }[]
     imageUrl: string
     imageContent: string
 }
@@ -69,5 +69,11 @@ export type LeagueSetParticipantResponse = {
 export type LeagueSetRacesResponse = {
     success: boolean;
     added: { id: number; leagueId: number, raceId: number, order: number }[];
+    failed: { raceId: number; order: number; error: string }[];
+}
+
+export type LeagueUpdateRacesResponse = {
+    success: boolean;
+    updated: { id: number; leagueId: number, raceId: number, order: number }[];
     failed: { raceId: number; order: number; error: string }[];
 }
