@@ -57,6 +57,8 @@ Run Prisma:
 npx prisma migrate dev --name "NAME"
 npx prisma db pull
 npx prisma studio
+
+npx prisma db seed
 ```
 
 ## TODO
