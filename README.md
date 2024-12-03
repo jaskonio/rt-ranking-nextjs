@@ -58,6 +58,7 @@ npx prisma migrate dev --name "NAME"
 npx prisma db pull
 npx prisma studio
 
+npx prisma db push --force-reset
 npx prisma db seed
 ```
 
