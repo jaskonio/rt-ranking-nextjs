@@ -70,6 +70,7 @@ model League {
   endDate         DateTime
   scoringMethodId Int
   photoUrl        String                 @default("")
+  visible         Boolean                @default(false)
   scoringMethod   ScoringMethod          @relation(fields: [scoringMethodId], references: [id])
   participants    LeagueParticipant[]
   races           LeagueRace[]

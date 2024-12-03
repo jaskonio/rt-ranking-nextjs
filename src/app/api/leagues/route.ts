@@ -4,11 +4,11 @@ import { createLeague, getAllLeagues } from "@/services/leagueService";
 export async function GET() {
     try {
         const leagues = await getAllLeagues()
-        const formattedLeagues = leagues.map((l) => {
+        const formattedLeagues = leagues.map((league) => {
             return {
-                ...l,
-                startDate: l.startDate.toISOString().split('T')[0], // Formatear a 'YYYY-MM-DD'
-                endDate: l.endDate.toISOString().split('T')[0], // Formatear a 'YYYY-MM-DD'
+                ...league,
+                startDate: league.startDate.toISOString().split('T')[0], // Formatear a 'YYYY-MM-DD'
+                endDate: league.endDate.toISOString().split('T')[0], // Formatear a 'YYYY-MM-DD'
             }
         })
         return Response.json({ success: true, leagues: formattedLeagues });
@@ -25,6 +25,8 @@ export async function POST(request: Request) {
         const startDate = formData.get("startDate") as string;
         const endDate = formData.get("endDate") as string;
         const scoringMethodId = formData.get("scoringMethodId") as string;
+        const visible = formData.get("visible") as string;
+
         // const bannerFile = formData.get("imageContent") as File;
 
         // Validar los datos
@@ -34,7 +36,14 @@ export async function POST(request: Request) {
 
         const bannerFileUrl = await saveBannerContent();
 
-        const newLeague = await createLeague({ name, startDate: normalizedStartDate, endDate: normalizedEndDate, scoringMethodId: parseInt(scoringMethodId), photoUrl: bannerFileUrl })
+        const newLeague = await createLeague({
+            name,
+            startDate: normalizedStartDate,
+            endDate: normalizedEndDate,
+            scoringMethodId: parseInt(scoringMethodId),
+            photoUrl: bannerFileUrl,
+            visible: Boolean(visible)
+        })
         return Response.json({ success: true, league: newLeague });
     } catch (error) {
         console.error("Ocurrió un error:", error);

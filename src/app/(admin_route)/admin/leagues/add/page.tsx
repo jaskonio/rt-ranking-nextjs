@@ -14,7 +14,7 @@ export default function NewRacePage() {
         races: [],
         imageContent: '',
         imageUrl: '',
-        disqualifiedRaces: []
+        visible: false,
     }
 
     const onSubmitRequest = async (payload: LeagueFormProps) => {
@@ -23,7 +23,8 @@ export default function NewRacePage() {
         formData.append("name", payload.name);
         formData.append("startDate", payload.startDate);
         formData.append("endDate", payload.endDate);
-        formData.append("scoringMethodId", payload.scoringMethodId.toString());
+        formData.append("scoringMethodId", payload.scoringMethodId);
+        formData.append("visible", String(payload.visible));
 
         if (payload.imageContent) {
             const imageBlob = await fetch(payload.imageContent).then((res) => res.blob());

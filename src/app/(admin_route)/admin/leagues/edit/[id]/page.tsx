@@ -45,6 +45,7 @@ export default function Page() {
         }),
         imageContent: '',
         imageUrl: league.photoUrl,
+        visible: league.visible
     }
 
     const onSubmitRequest = async (payload: LeagueFormProps) => {
@@ -56,6 +57,7 @@ export default function Page() {
         formData.append("startDate", payload.startDate);
         formData.append("endDate", payload.endDate);
         formData.append("scoringMethodId", payload.scoringMethodId);
+        formData.append("visible", String(payload.visible));
 
         if (payload.imageContent) {
             const imageBlob = await fetch(payload.imageContent).then((res) => res.blob());

@@ -1,22 +1,24 @@
 import prisma from "@/lib/db";
 import { sortPaces, sortTimes } from "@/lib/utils";
+import { LeagueHistoryRanking } from "@/type/league";
 import { RunnerLeagueDetail } from "@/type/runner";
 import { LeagueParticipant, LeagueRanking, RunnerParticipation, ScoringMethod } from "@prisma/client";
 
-export const createLeague = async (data: {
+type LeagueProp = {
     name: string;
     startDate: Date;
     endDate: Date;
     scoringMethodId: number;
     photoUrl: string;
-
-}) => {
+    visible: boolean;
+}
+export const createLeague = async (data: LeagueProp) => {
     return await prisma.league.create({
         data,
     });
 }
 
-export const updateLeague = async (id: number, data: Partial<{ name: string; startDate: Date; endDate: Date; scoringMethodId: number, photoUrl: string }>) => {
+export const updateLeague = async (id: number, data: Partial<LeagueProp>) => {
     return await prisma.league.update({
         where: { id },
         data,
@@ -309,9 +311,12 @@ export const getRankingHistory = async (id: number) => {
         ...data
     }))
 
-    return {
+    const data: LeagueHistoryRanking = {
         name: league.name,
         photoUrl: league.photoUrl,
-        races
+        visible: league.visible,
+        races: races
     }
+
+    return data
 }

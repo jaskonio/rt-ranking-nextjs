@@ -3,9 +3,10 @@
 import { Medal, Trophy, Activity, ChevronUp, Timer, Route, ChevronDown, Minus, Signal } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { RaceLeagueDetail, RunnerLeagueDetail } from "@/type/runner";
+import { RunnerLeagueDetail } from "@/type/runner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useMemo, useState } from "react";
+import { RacesHistoryRanking } from "@/type/league";
 
 
 const getPodiumIcon = (position: number) => {
@@ -149,7 +150,7 @@ type LeaderboardPage = {
     subTitle: string,
     subSubTitle: string,
     bannerUrl: string
-    races: RaceLeagueDetail[],
+    races: RacesHistoryRanking[],
 }
 export default function LeaderboardPage({ title, subTitle, subSubTitle, races, bannerUrl }: LeaderboardPage) {
     const [raceSelectedId, setRaceSelectedId] = useState<string>(races[0].raceId.toString())

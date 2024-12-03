@@ -1,10 +1,11 @@
 "use client"
 
 import LeagueCardList from "@/components/league-list"
+import { League } from "@/type/league"
 import { useEffect, useState } from "react"
 
 export default function Page() {
-    const [leagues, setLeague] = useState(null)
+    const [leagues, setLeague] = useState<League[] | null>(null)
     const [isLoading, setLoading] = useState(true)
 
     useEffect(() => {
@@ -18,7 +19,9 @@ export default function Page() {
 
     if (isLoading) return <header>Loading...</header>
     if (!leagues) return <p>No hay ligas registradas</p>
+
+    const visibleLeague = leagues.filter(l => l.visible)
     return (
-        <LeagueCardList leagues={leagues} />
+        <LeagueCardList leagues={visibleLeague} />
     );
 }

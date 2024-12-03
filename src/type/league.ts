@@ -1,3 +1,5 @@
+import { RunnerLeagueDetail } from "./runner";
+
 export type LeagueParticipant = {
     id: number;
     leagueId: number;
@@ -36,7 +38,8 @@ export type League = {
     scoringMethodId: number
     scoringMethod: ScoringMethod;
     participants: LeagueParticipant[]
-    races: LeagueRace[]
+    races: LeagueRace[];
+    visible: boolean
 }
 
 export type LeagueResponses = {
@@ -57,7 +60,8 @@ export type LeagueFormProps = {
     participants: { id: number, runnerId: number, bibNumber: number, disqualified_at_race_order?: number }[];
     races: { id?: number, raceId: number, order: number }[]
     imageUrl: string
-    imageContent: string
+    imageContent: string;
+    visible: boolean
 }
 
 export type LeagueSetParticipantResponse = {
@@ -76,4 +80,25 @@ export type LeagueUpdateRacesResponse = {
     success: boolean;
     updated: { id: number; leagueId: number, raceId: number, order: number }[];
     failed: { raceId: number; order: number; error: string }[];
+}
+
+export type RacesHistoryRanking = {
+    order: number;
+    name: string;
+    date: string;
+    distance: string;
+    runners: RunnerLeagueDetail[];
+    raceId: number;
+}
+
+export type LeagueHistoryRanking = {
+    name: string;
+    visible: boolean;
+    photoUrl: string;
+    races: RacesHistoryRanking[];
+}
+
+export type LeagueHistoryRankingResponse = {
+    success: boolean;
+    historyRanking: LeagueHistoryRanking;
 }

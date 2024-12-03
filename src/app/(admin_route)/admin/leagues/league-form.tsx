@@ -4,7 +4,7 @@ import Image from "next/image";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { Trophy, Calendar, Calculator, Users, Flag, ImageIcon, X } from "lucide-react";
+import { Trophy, Calendar, Calculator, Users, Flag, ImageIcon, X, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     Form,
@@ -35,6 +35,7 @@ import { ScoringMethodDetail } from "@/type/scoring-method";
 import { Races } from "@/type/race";
 import { RunnerDetail } from "@/type/runner";
 import { LeagueFormProps } from "@/type/league";
+import { Checkbox } from "@/components/ui/checkbox";
 
 
 const formSchema = z.object({
@@ -52,7 +53,8 @@ const formSchema = z.object({
         id: z.number().optional(),
         raceId: z.number(),
         order: z.number(),
-    }))
+    })),
+    visible: z.boolean(),
 });
 
 type LeagueFormType = {
@@ -167,6 +169,7 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
                 races: values.races,
                 imageUrl: defaultValues.imageUrl,
                 imageContent: defaultValues.imageContent,
+                visible: values.visible,
             }
             console.log(payload)
 
@@ -417,6 +420,33 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="visible"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border border-gray-100 p-4">
+                                <FormControl>
+                                    <Checkbox
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                        className="data-[state=checked]:bg-blue-600"
+                                    />
+                                </FormControl>
+                                <div className="space-y-1 leading-none">
+                                    <FormLabel className="text-white">
+                                        <div className="flex items-center gap-2">
+                                            <Eye className="h-4 w-4 text-gray-400" />
+                                            Liga visible
+                                        </div>
+                                    </FormLabel>
+                                    <p className="text-sm text-gray-400">
+                                        Todo los usuario podrán ver la Liga y la clasificación
+                                    </p>
+                                </div>
                             </FormItem>
                         )}
                     />
