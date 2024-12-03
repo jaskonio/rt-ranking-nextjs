@@ -155,7 +155,6 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
 
         values.participants = selectedParticipants
         values.races = selectedRaces
-        // values.disqualifiedRaces = selectedDisqualifiedRaces
 
         setIsLoading(true);
         try {
@@ -197,7 +196,7 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
         const selectedParticipantsWhioutCurrentParticipant = selectedParticipants.filter(p => p.id != participantId)
         if (participant) {
             participant.disqualified_at_race_order = race?.order ?? undefined
-            setSelectedParticipants([...selectedParticipantsWhioutCurrentParticipant, participant]);
+            setSelectedParticipants([...selectedParticipantsWhioutCurrentParticipant.sort(), participant]);
         }
     };
 
@@ -219,28 +218,28 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
     const handleParticipantAdd = (runnerId: number) => {
         const runner = runners.find(r => r.id === runnerId);
         if (runner && !selectedParticipants.find(p => p.runnerId === runnerId)) {
-            // setSelectedParticipants([
-            //     ...selectedParticipants,
-            //     {
-            //         id: runner.id,
-            //         runnerId: runnerId,
-            //         name: runner.name,
-            //         bibNumber: 0,
-            //         photoUrl: runner.photoUrl
-            //     },
-            // ]);
+            setSelectedParticipants([
+                ...selectedParticipants,
+                {
+                    id: runner.id,
+                    runnerId: runnerId,
+                    name: runner.name,
+                    bibNumber: 0,
+                    photoUrl: runner.photoUrl
+                },
+            ]);
             setOpenRunner(false);
         }
     };
 
     const handleBibNumberChange = (runnerId: number, newBibNumber: string) => {
-        // setSelectedParticipants(
-        //     selectedParticipants.map(p =>
-        //         p.runnerId === runnerId
-        //             ? { ...p, bibNumber: Number(newBibNumber) }
-        //             : p
-        //     )
-        // );
+        setSelectedParticipants(
+            selectedParticipants.map(p =>
+                p.runnerId === runnerId
+                    ? { ...p, bibNumber: Number(newBibNumber) }
+                    : p
+            )
+        );
     };
 
     const handleBannerUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -468,7 +467,7 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
 
                     {selectedParticipants.length > 0 && (
                         <div className="bg-gray-700/30 rounded-lg p-4 space-y-2">
-                            {selectedParticipants.map((participant) => (
+                            {selectedParticipants.sort().map((participant) => (
                                 <div
                                     key={participant.id}
                                     className="flex items-center justify-between bg-gray-800/50 rounded-lg p-3"
@@ -476,12 +475,12 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
                                     <div className="flex items-center gap-3 flex-grow">
                                         <div className="flex-shrink-0 group">
                                             <div className="relative ml-2 w-10 h-10 rounded-full overflow-hidden ring-2 ring-white/20 ">
-                                                {/* <Image
+                                                <Image
                                                     src={participant.photoUrl}
                                                     alt={participant.name}
                                                     fill
                                                     className="object-cover"
-                                                /> */}
+                                                />
                                             </div>
                                         </div>
                                         <span className="text-white">{participant.name}</span>

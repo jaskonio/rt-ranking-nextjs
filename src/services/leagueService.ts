@@ -49,25 +49,13 @@ export const addParticipant = async (leagueId: number, runnerId: number, bibNumb
     });
 }
 
-export const updateParticipant = async (participantId: number, data: Partial<{ runnerId: number, bibNumber: number }>) => {
+export const updateParticipant = async (participantId: number, data: Partial<{ runnerId: number, bibNumber: number, disqualified_at_race_order: number }>) => {
     return await prisma.leagueParticipant.update({
         where: { id: participantId },
         data,
     });
 }
 
-export async function disqualifyParticipant(leagueId: number, runnerId: number, raceOrder: number) {
-    const result = await prisma.leagueParticipant.findFirst({
-        where: { leagueId: leagueId, runnerId: runnerId },
-    });
-
-    await prisma.leagueParticipant.update({
-        where: { id: result?.id },
-        data: { disqualified_at_race_order: raceOrder }
-    });
-
-    // await recalculateLeagueRankings(leagueId);
-}
 
 export const deleteParticipant = async (participantId: number) => {
     await prisma.leagueParticipant.delete({ where: { id: participantId } });

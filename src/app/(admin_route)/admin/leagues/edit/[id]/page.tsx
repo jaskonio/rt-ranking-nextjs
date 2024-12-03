@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import LeagueForm from "../../league-form";
-import { League, LeagueFormProps, LeagueResponse, LeagueSetDisqualifyParticipantResponse, LeagueSetParticipantResponse, LeagueSetRacesResponse } from "@/type/league";
+import { League, LeagueFormProps, LeagueResponse, LeagueSetParticipantResponse, LeagueSetRacesResponse } from "@/type/league";
 
 
 export default function Page() {
@@ -97,18 +97,6 @@ export default function Page() {
 
         const racesJsonResponse: LeagueSetRacesResponse = await racesResponse.json()
         if (!racesJsonResponse.success) throw new Error("Error al asignar las nuevas carreras")
-
-        // set disqualified runner
-        // const disqualifiedResponse = await fetch(`/api/leagues/${leagueId}/disqualified`, {
-        //     method: "PUT",
-        //     headers: {
-        //         "Content-Type": "application/json",
-        //     },
-        //     body: JSON.stringify(payload.disqualifiedRaces),
-        // });
-
-        // const disqualifiedJsonResponse: LeagueSetDisqualifyParticipantResponse = await disqualifiedResponse.json()
-        // if (!disqualifiedJsonResponse.success) throw new Error("Error al descalificar runner")
     }
 
     console.log(defaultValues)

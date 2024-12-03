@@ -71,9 +71,3 @@ export type LeagueSetRacesResponse = {
     added: { id: number; leagueId: number, raceId: number, order: number }[];
     failed: { raceId: number; order: number; error: string }[];
 }
-
-export type LeagueSetDisqualifyParticipantResponse = {
-    success: boolean;
-    added: { runnerId: number; raceOrder: number }[];
-    failed: { runnerId: number; raceOrder: number; error: string }[];
-}
