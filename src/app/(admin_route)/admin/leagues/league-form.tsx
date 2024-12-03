@@ -548,7 +548,14 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
                                         <div className="flex items-center gap-2">
                                             <span className="text-gray-400">Descalificar desde la carrera </span>
 
-                                            <Select onValueChange={(raceId) => handleDisqualifiedRaceSelection(participant.runnerId, raceId)}>
+                                            <Select onValueChange={(raceId) => handleDisqualifiedRaceSelection(participant.runnerId, raceId)}
+                                                defaultValue={() => {
+                                                    if (!participant.disqualified_at_race_order || participant.disqualified_at_race_order == 9999) {
+                                                        return null
+                                                    }
+
+                                                    return selectedRaces[participant.disqualified_at_race_order - 1].raceId.toString()
+                                                }}>
                                                 <div className="relative">
                                                     <Flag className="absolute left-3 top-3 h-5 w-5 text-gray-400 z-10" />
                                                     <SelectTrigger className="bg-gray-700/50 border-gray-600 text-white pl-10">
