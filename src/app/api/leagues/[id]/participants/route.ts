@@ -57,8 +57,13 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         const { id, runnerId, bibNumber, disqualified_at_race_order } = participant;
 
         try {
-            const addedParticipant = await updateParticipant(id, { runnerId, bibNumber, disqualified_at_race_order });
-            results.added.push(addedParticipant);
+            if (id) {
+                const updatedParticipant = await updateParticipant(id, { runnerId, bibNumber, disqualified_at_race_order });
+                results.added.push(updatedParticipant);
+            } else {
+                const addedParticipant = await addParticipant(leagueId, runnerId, bibNumber, disqualified_at_race_order);
+                results.added.push(addedParticipant);
+            }
         } catch (error) {
             console.error(`Error al actualizar participante: RunnerID=${runnerId}, BibNumber=${bibNumber}`, error);
             results.failed.push({

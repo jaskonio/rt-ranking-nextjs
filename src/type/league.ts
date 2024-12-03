@@ -57,7 +57,7 @@ export type LeagueFormProps = {
     startDate: string;
     endDate: string;
     scoringMethodId: string;
-    participants: { id: number, runnerId: number, bibNumber: number, disqualified_at_race_order?: number }[];
+    participants: { id?: number, runnerId: number, bibNumber: number, disqualified_at_race_order?: number }[];
     races: { id?: number, raceId: number, order: number }[]
     imageUrl: string
     imageContent: string;

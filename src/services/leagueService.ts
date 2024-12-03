@@ -41,12 +41,13 @@ export const getAllLeagues = async () => {
     });
 }
 
-export const addParticipant = async (leagueId: number, runnerId: number, bibNumber: number) => {
+export const addParticipant = async (leagueId: number, runnerId: number, bibNumber: number, order?: number) => {
     return await prisma.leagueParticipant.create({
         data: {
             leagueId,
             runnerId,
             bibNumber,
+            disqualified_at_race_order: order
         },
     });
 }
@@ -89,7 +90,10 @@ export const generateLeagueRanking = async (leagueId: number) => {
     const league = await prisma.league.findUnique({
         where: { id: leagueId },
         include: {
-            races: { include: { race: { include: { participations: true } } } },
+            races: {
+                include:
+                    { race: { include: { participations: true } } }
+            },
             participants: { include: { runner: true } },
             scoringMethod: true,
         },
@@ -121,9 +125,10 @@ export const generateLeagueRanking = async (leagueId: number) => {
         const { race } = leagueRace;
         if (!race) continue;
 
+        const leagueParticipants: LeagueParticipant[] = participants.filter(p => p.disqualified_at_race_order > leagueRace.order)
         const raceRankings = await calculateRaceRanking(
             race.participations,
-            participants,
+            leagueParticipants,
             scoringMethod
         );
 
@@ -159,20 +164,36 @@ export const generateLeagueRanking = async (leagueId: number) => {
         rankings.push(...raceRankings);
 
         // Guardar el global
-        const currentGlobalRanking = Array.from(globalRanking.entries())
-            .map(([participantId, { raceId, points, top5Finishes, bestRealPace, bestPosition, participations, previousPosition }]) => ({
-                raceId,
-                leagueId,
-                participantId,
-                position: 0, // Se calculará en ordenamiento
-                points,
-                top5Finishes,
-                numberParticipantion: participations,
-                bestRealPace,
-                bestPosition,
-                previousPosition
-            }))
-            .map((entry, index) => ({ ...entry, position: index + 1 }));
+        const globalRankingList = Array.from(globalRanking.entries())
+
+        const currentGlobalRanking = []
+        let index = 1
+        for (const globalRankingParticipant of globalRankingList) {
+            const globalRankingParticipantId = globalRankingParticipant[0]
+            const globalRankingParticipantData = globalRankingParticipant[1]
+
+            if (leagueParticipants.map(l => l.id).includes(globalRankingParticipantId)) {
+                console.log("el participante esta el leagueParticipants")
+
+                currentGlobalRanking.push(
+                    {
+                        raceId: race.id,
+                        leagueId: leagueId,
+                        participantId: globalRankingParticipantId,
+                        position: index,
+                        points: globalRankingParticipantData.points,
+                        top5Finishes: globalRankingParticipantData.top5Finishes,
+                        numberParticipantion: globalRankingParticipantData.participations,
+                        bestRealPace: globalRankingParticipantData.bestRealPace,
+                        bestPosition: globalRankingParticipantData.bestPosition,
+                        previousPosition: globalRankingParticipantData.previousPosition
+                    }
+                )
+                index += 1
+            } else {
+                console.log("el participante no esta el leagueParticipants")
+            }
+        }
 
         globalRankingsArray.push(...currentGlobalRanking)
     }
@@ -294,7 +315,7 @@ export const getRankingHistory = async (id: number) => {
 
         race.runners.push({
             id: runner.id,
-            name: runner.participant.runner.name,
+            name: `${runner.participant.runner.name}, ${runner.participant.runner.surname}`,
             pace: runner.bestRealPace || '',
             photoUrl: runner.participant.runner.photoUrl || "https://i.pravatar.cc/300",
             points: runner.points,

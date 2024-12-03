@@ -45,7 +45,7 @@ const formSchema = z.object({
     endDate: z.string().min(1, "End date is required"),
     scoringMethodId: z.string().min(1, "Scoring method is required"),
     participants: z.array(z.object({
-        id: z.number(),
+        id: z.number().optional(),
         runnerId: z.number(),
         bibNumber: z.number(),
         disqualified_at_race_order: z.number().optional()
@@ -71,7 +71,7 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
     const [availableRaces, setAvailableRaces] = useState<Races[] | null>(null)
     const [runners, setRunners] = useState<RunnerDetail[] | null>(null)
     const [selectedParticipants, setSelectedParticipants] = useState<Array<{
-        id: number,
+        id?: number,
         runnerId: number,
         name: string,
         bibNumber: number,
@@ -130,11 +130,11 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
     useEffect(() => {
         const searchDefaultSelectedParticipant = defaultValues.participants.map((dp) => {
             const participant = runners?.find(ar => ar.id == dp.runnerId)
-
+            const fullName = `${participant?.name}, ${participant?.surname}`
             return {
                 id: dp.id,
                 runnerId: participant?.id ?? 0,
-                name: participant?.name ?? '',
+                name: fullName ?? '',
                 bibNumber: dp.bibNumber,
                 photoUrl: participant?.photoUrl ?? '',
                 disqualified_at_race_order: dp.disqualified_at_race_order
@@ -210,12 +210,12 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
         }
     };
 
-    const handleDisqualifiedRaceSelection = (participantId: number, raceId: string) => {
-        console.log(`participantId: ${participantId}. raceId: ${raceId}`)
+    const handleDisqualifiedRaceSelection = (runnerId: number, raceId: string) => {
+        console.log(`runnerId: ${runnerId}. raceId: ${raceId}`)
 
         const race = selectedRaces.find(r => r.raceId === parseInt(raceId))
-        const participant = selectedParticipants.find(p => p.id == participantId)
-        const selectedParticipantsWhioutCurrentParticipant = selectedParticipants.filter(p => p.id != participantId)
+        const participant = selectedParticipants.find(p => p.runnerId == runnerId)
+        const selectedParticipantsWhioutCurrentParticipant = selectedParticipants.filter(p => p.runnerId != runnerId)
         if (participant) {
             participant.disqualified_at_race_order = race?.order ?? undefined
             setSelectedParticipants([...selectedParticipantsWhioutCurrentParticipant.sort(), participant]);
@@ -239,19 +239,20 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
 
     const handleParticipantAdd = (runnerId: number) => {
         const runner = runners.find(r => r.id === runnerId);
-        if (runner && !selectedParticipants.find(p => p.runnerId === runnerId)) {
+
+        if (runner) {
             setSelectedParticipants([
                 ...selectedParticipants,
                 {
-                    id: runner.id,
                     runnerId: runnerId,
-                    name: runner.name,
+                    name: `${runner.name}, ${runner.surname}`,
                     bibNumber: 0,
                     photoUrl: runner.photoUrl
                 },
             ]);
-            setOpenRunner(false);
         }
+
+        setOpenRunner(false);
     };
 
     const handleBibNumberChange = (runnerId: number, newBibNumber: string) => {
@@ -516,9 +517,9 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
 
                     {selectedParticipants.length > 0 && (
                         <div className="bg-gray-700/30 rounded-lg p-4 space-y-2">
-                            {selectedParticipants.sort().map((participant) => (
+                            {selectedParticipants.sort().map((participant, index) => (
                                 <div
-                                    key={participant.id}
+                                    key={index}
                                     className="flex items-center justify-between bg-gray-800/50 rounded-lg p-3"
                                 >
                                     <div className="flex items-center gap-3 flex-grow">
@@ -547,7 +548,7 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
                                         <div className="flex items-center gap-2">
                                             <span className="text-gray-400">Descalificar desde la carrera </span>
 
-                                            <Select onValueChange={(raceId) => handleDisqualifiedRaceSelection(participant.id, raceId)}>
+                                            <Select onValueChange={(raceId) => handleDisqualifiedRaceSelection(participant.runnerId, raceId)}>
                                                 <div className="relative">
                                                     <Flag className="absolute left-3 top-3 h-5 w-5 text-gray-400 z-10" />
                                                     <SelectTrigger className="bg-gray-700/50 border-gray-600 text-white pl-10">
