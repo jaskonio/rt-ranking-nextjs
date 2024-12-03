@@ -36,6 +36,7 @@ import { Races } from "@/type/race";
 import { RunnerDetail } from "@/type/runner";
 import { LeagueFormProps } from "@/type/league";
 import { Checkbox } from "@/components/ui/checkbox";
+import { CreateLeagueSkeleton } from "@/components/create-league-skeleton";
 
 
 const formSchema = z.object({
@@ -62,8 +63,7 @@ type LeagueFormType = {
     onSubmitRequest: (payload: LeagueFormProps) => Promise<void>;
 }
 export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFormType) {
-    const [isLoading, setIsLoading] = useState(false);
-    const [isRunnersRequests, SetIsRunnersRequests] = useState(true);
+    const [isLoading, setIsLoading] = useState(true);
 
     const [errorMessage, setErrorMessage] = useState("");
 
@@ -80,26 +80,26 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
     }>>([]);
 
     useEffect(() => {
-        fetch(`/api/scoring-method`)
-            .then((res) => res.json())
-            .then((scoringMethodsResponse) => {
-                setScoringMethods(scoringMethodsResponse['scoringMethods'])
-            })
-    }, [])
-    useEffect(() => {
-        fetch(`/api/races`)
-            .then((res) => res.json())
-            .then((racesResponse) => {
-                setAvailableRaces(racesResponse['races'])
-            })
-    }, [])
-    useEffect(() => {
-        fetch(`/api/runners`)
-            .then((res) => res.json())
-            .then((runnersResponse) => {
-                setRunners(runnersResponse['runners'])
-                SetIsRunnersRequests(false)
-            })
+        const fetchData = async () => {
+            try {
+                const [scoringMethodsResponse, racesResponse, runnersResponse] = await Promise.all([
+                    fetch(`/api/scoring-method`).then((res) => res.json()),
+                    fetch(`/api/races`).then((res) => res.json()),
+                    fetch(`/api/runners`).then((res) => res.json()),
+                ]);
+
+                setScoringMethods(scoringMethodsResponse.scoringMethods || []);
+                setAvailableRaces(racesResponse.races || []);
+                setRunners(runnersResponse.runners || []);
+            } catch (error) {
+                console.error("Error al cargar los datos:", error);
+                setErrorMessage("Hubo un problema al cargar los datos. Por favor, inténtalo de nuevo.");
+            } finally {
+                setIsLoading(false);
+            }
+        }
+
+        fetchData()
     }, [])
 
     const router = useRouter();
@@ -148,7 +148,11 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
         defaultValues: defaultValues,
     });
 
-    if (isRunnersRequests) return <header>Loading...</header>
+    if (isLoading) {
+        return (
+            <CreateLeagueSkeleton></CreateLeagueSkeleton>
+        );
+    }
     if (!scoringMethods || !availableRaces || !runners) return <p>Error al recuperar los datos</p>
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
