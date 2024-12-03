@@ -187,7 +187,7 @@ export default function LeaderboardPage({ title, subTitle, subSubTitle, races, b
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <Select onValueChange={setRaceSelectedId} defaultValue={raceSelectedId}>
-                                        <SelectTrigger className="w-[180px]">
+                                        <SelectTrigger className="w-[350px]">
                                             <SelectValue placeholder="Carrea" />
                                         </SelectTrigger>
                                         <SelectContent>
