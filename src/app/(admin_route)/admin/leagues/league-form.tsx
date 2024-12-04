@@ -282,6 +282,21 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
         if (input) input.value = '';
     };
 
+    const calculateDefaultValue = (
+        participant: { disqualified_at_race_order?: number },
+        selectedRaces: { raceId: number }[]
+    ): string => {
+        const raceOrder = participant.disqualified_at_race_order ?? 0;
+
+        if (raceOrder === 0 || raceOrder === 9999) {
+            return ''; // No descalificación
+        }
+
+        const selectedRace = selectedRaces[raceOrder - 1];
+        return selectedRace?.raceId.toString() || ''; // Devuelve el raceId si existe, o cadena vacía si no
+    };
+
+
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -516,25 +531,25 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
                     </Popover>
 
                     {selectedParticipants.length > 0 && (
-                        <div className="bg-gray-700/30 rounded-lg p-4 space-y-2">
+                        <div className="rounded-lg p-4 space-y-2">
                             {selectedParticipants.sort().map((participant, index) => (
                                 <div
                                     key={index}
-                                    className="flex items-center justify-between bg-gray-800/50 rounded-lg p-3"
+                                    className="flex flex-col justify-between bg-gray-800/50 rounded-lg p-3"
                                 >
-                                    <div className="flex items-center gap-3 flex-grow">
-                                        <div className="flex-shrink-0 group">
-                                            <div className="relative ml-2 w-10 h-10 rounded-full overflow-hidden ring-2 ring-white/20 ">
-                                                {/* <Image
+                                    <div className="flex flex-row items-center pb-4">
+                                        <div className="relative ml-2 w-10 h-10 rounded-full overflow-hidden ring-2 ring-white/20 ">
+                                            {/* <Image
                                                     src={participant.photoUrl}
                                                     alt={participant.name}
                                                     fill
                                                     className="object-cover"
                                                 /> */}
-                                            </div>
                                         </div>
-                                        <span className="text-white">{participant.name}</span>
-                                        <div className="flex items-center gap-2">
+                                        <span className="text-white align-middle pl-4">{participant.name}</span>
+                                    </div>
+                                    <div className="flex flex-row pb-4">
+                                        <div className="basis-1/4">
                                             <span className="text-gray-400">Dorsal </span>
                                             <Input
                                                 type="number"
@@ -545,17 +560,12 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
                                             />
                                         </div>
 
-                                        <div className="flex items-center gap-2">
+                                        <div className="basis-1/4">
                                             <span className="text-gray-400">Descalificar desde la carrera </span>
-
-                                            <Select onValueChange={(raceId) => handleDisqualifiedRaceSelection(participant.runnerId, raceId)}
-                                                defaultValue={() => {
-                                                    if (!participant.disqualified_at_race_order || participant.disqualified_at_race_order == 9999) {
-                                                        return null
-                                                    }
-
-                                                    return selectedRaces[participant.disqualified_at_race_order - 1].raceId.toString()
-                                                }}>
+                                            <Select
+                                                onValueChange={(raceId) => handleDisqualifiedRaceSelection(participant.runnerId, raceId)}
+                                                defaultValue={calculateDefaultValue(participant, selectedRaces)}
+                                            >
                                                 <div className="relative">
                                                     <Flag className="absolute left-3 top-3 h-5 w-5 text-gray-400 z-10" />
                                                     <SelectTrigger className="bg-gray-700/50 border-gray-600 text-white pl-10">
