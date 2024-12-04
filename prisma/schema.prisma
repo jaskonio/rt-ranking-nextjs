@@ -25,6 +25,7 @@ model Race {
 model RunnerParticipation {
   id                       Int     @id @default(autoincrement())
   raceId                   Int
+  runnerId                 Int?
   bibNumber                Int
   realPosition             Int
   realTime                 String
@@ -44,14 +45,16 @@ model RunnerParticipation {
   officialCategoryPosition Int
   officialGenderPosition   Int
   race                     Race    @relation(fields: [raceId], references: [id])
+  runner                   Runner? @relation(fields: [runnerId], references: [id])
 }
 
 model Runner {
-  id                Int                 @id @default(autoincrement())
-  name              String
-  surname           String
-  photoUrl          String?
-  leagueParticipant LeagueParticipant[]
+  id                  Int                   @id @default(autoincrement())
+  name                String
+  surname             String
+  photoUrl            String?
+  leagueParticipant   LeagueParticipant[]
+  RunnerParticipation RunnerParticipation[]
 }
 
 model RaceProcessingHistory {

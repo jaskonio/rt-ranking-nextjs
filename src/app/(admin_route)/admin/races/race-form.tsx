@@ -17,14 +17,32 @@ import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Platform, RacesFormAdd } from "@/type/race";
-import { useState } from "react";
+import { Platform, RacesFormAdd, RunnerCustomParticipation } from "@/type/race";
+import { useEffect, useState } from "react";
+import RunnerParticipationTable from "@/components/races/runner-participantion-table";
+import { RunnerDetail } from "@/type/runner";
 
 const formSchema = z.object({
     name: z.string().min(1, "Race name is required"),
     date: z.string().min(1, "Date is required"),
     platform: z.string().min(1, "Platform is required"),
     url: z.string().url("Must be a valid URL"),
+    participations: z.array(z.object({
+        id: z.string(),
+        runnerId: z.string(),
+        bib: z.number(),
+        realPosition: z.number(),
+        realTime: z.string(),
+        realPace: z.string(),
+        officialPosition: z.number(),
+        officialTime: z.string(),
+        officialPace: z.string(),
+        category: z.string(),
+        realCategoryPosition: z.number(),
+        realGenderPosition: z.number(),
+        officialCategoryPosition: z.number(),
+        officialGenderPosition: z.number(),
+    })),
 });
 
 type RaceFormType = {
@@ -36,11 +54,34 @@ export default function RaceForm({ defaultValues, onSubmitRequest }: RaceFormTyp
 
     const [isLoading, setIsLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
+    const [runners, setRunners] = useState<RunnerDetail[] | null>(null)
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: defaultValues,
     });
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [runnersResponse] = await Promise.all([
+                    fetch(`/api/runners`).then((res) => res.json()),
+                ]);
+
+                setRunners(runnersResponse.runners || []);
+            } catch (error) {
+                console.error("Error al cargar los datos:", error);
+                setErrorMessage("Hubo un problema al cargar los datos. Por favor, inténtalo de nuevo.");
+            } finally {
+                setIsLoading(false);
+            }
+        }
+
+        fetchData()
+    }, [])
+
+    if (isLoading) return (<p>Cargando...</p>);
+    if (!runners) return (<p>Error al recuperar los datos</p>);
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setIsLoading(true);
@@ -57,6 +98,11 @@ export default function RaceForm({ defaultValues, onSubmitRequest }: RaceFormTyp
             setIsLoading(false);
         }
     }
+
+    const handleParticipationsChange = (participations: RunnerCustomParticipation[]) => {
+        console.log(participations)
+        form.setValue('participations', participations);
+    };
 
     return (
         <Form {...form}>
@@ -145,6 +191,16 @@ export default function RaceForm({ defaultValues, onSubmitRequest }: RaceFormTyp
                             </FormControl>
                             <FormMessage />
                         </FormItem>
+                    )}
+                />
+
+                <FormField
+                    control={form.control}
+                    name="participations"
+                    render={() => (
+                        <RunnerParticipationTable
+                            runners={runners}
+                            onChange={handleParticipationsChange} />
                     )}
                 />
 

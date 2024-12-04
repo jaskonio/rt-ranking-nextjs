@@ -36,9 +36,9 @@ export default function Page() {
     }
 
     return (
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16 space-y-4 animate-fade-in">
-                <h1 className="text-5xl font-bold text-white">
+                <h1 className="text-xl font-bold text-white">
                     Editar Carrera
                 </h1>
                 <p className="text-gray-300">
