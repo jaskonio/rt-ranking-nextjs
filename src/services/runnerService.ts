@@ -11,17 +11,17 @@ export const addRunner = async (data: Omit<Runner, 'id' | 'photoUrl'>, fileName:
     });
 };
 
-export const updateRunner = async (id: number, data: Partial<Omit<Runner, 'id' | 'photoUrl'>>, photo?: Buffer, fileName?: string): Promise<Runner | null> => {
-    let photoUrl;
-    if (photo && fileName) {
-        photoUrl = await uploadToS3(photo, fileName);
-    }
+export const getRunnerById = async (runnerId: number): Promise<Runner | null> => {
+    return prisma.runner.findFirst({
+        where: { id: runnerId }
+    });
+};
 
+export const updateRunner = async (id: number, data: Partial<Omit<Runner, 'id'>>): Promise<Runner | null> => {
     return prisma.runner.update({
         where: { id },
         data: {
             ...data,
-            ...(photoUrl ? { photoUrl } : {}), // Solo actualiza photoUrl si hay una nueva foto
         },
     });
 };

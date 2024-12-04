@@ -32,7 +32,7 @@ type RunnerFormType = {
 }
 export default function RunnerForm({ defaultValues, onSubmitRequest }: RunnerFormType) {
     const router = useRouter();
-    const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+    const [photoPreview, setPhotoPreview] = useState<string | null>(defaultValues.photoContent || defaultValues.photoUrl || null);
     const [isLoading, setIsLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
 
@@ -64,8 +64,12 @@ export default function RunnerForm({ defaultValues, onSubmitRequest }: RunnerFor
         try {
             const payload: RunnerFormProps = {
                 ...values,
-                photoContent: photoPreview || undefined,
             }
+
+            if (photoPreview && !photoPreview.startsWith('htt')) {
+                payload.photoContent = photoPreview
+            }
+
             await onSubmitRequest(payload)
 
             router.push("/admin/runners");
@@ -167,7 +171,7 @@ export default function RunnerForm({ defaultValues, onSubmitRequest }: RunnerFor
                 />
 
                 <div className="flex justify-end space-x-4">
-                    <Link href="/runners">
+                    <Link href="/admin/runners">
                         <Button variant="outline" className="border-gray-600">
                             Cancelar
                         </Button>

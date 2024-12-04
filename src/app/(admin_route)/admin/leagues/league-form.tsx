@@ -112,7 +112,6 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
 
     const [openRunner, setOpenRunner] = useState(false);
 
-
     const [bannerPreview, setBannerPreview] = useState<string | null>(defaultValues.imageContent || defaultValues.imageUrl || null);
 
     useEffect(() => {
@@ -148,11 +147,8 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
         defaultValues: defaultValues,
     });
 
-    if (isLoading) {
-        return (
-            <CreateLeagueSkeleton></CreateLeagueSkeleton>
-        );
-    }
+    if (isLoading) return (<CreateLeagueSkeleton></CreateLeagueSkeleton>);
+
     if (!scoringMethods || !availableRaces || !runners) return <p>Error al recuperar los datos</p>
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
@@ -175,6 +171,7 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
                 imageContent: defaultValues.imageContent,
                 visible: values.visible,
             }
+
             console.log(payload)
 
             await onSubmitRequest(payload)
