@@ -25,7 +25,6 @@ model Race {
 model RunnerParticipation {
   id                       Int     @id @default(autoincrement())
   raceId                   Int
-  runnerId                 Int?
   bibNumber                Int
   realPosition             Int
   realTime                 String
@@ -44,6 +43,7 @@ model RunnerParticipation {
   realGenderPosition       Int
   officialCategoryPosition Int
   officialGenderPosition   Int
+  runnerId                 Int?
   race                     Race    @relation(fields: [raceId], references: [id])
   runner                   Runner? @relation(fields: [runnerId], references: [id])
 }
