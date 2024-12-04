@@ -66,7 +66,6 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
         try {
             if (id) {
-                const races = await prisma.leagueRace.findMany({})
                 const updatedRace = await updateLeagueRace(id, { leagueId, raceId, order });
                 results.updated.push(updatedRace);
             } else {
