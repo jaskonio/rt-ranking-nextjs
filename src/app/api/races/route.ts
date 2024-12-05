@@ -1,8 +1,7 @@
 import prisma from '@/lib/db';
 import { normalizeRaceData } from '@/lib/normalization';
 import { validateRaceData } from '@/lib/validation';
-import { Platform, RaceResponse, Races, RunnerCustomParticipation } from '@/type/race';
-import { RunnerDetail } from '@/type/runner';
+import { Platform, RaceResponse, Races, RunnerBasketClassification } from '@/type/race';
 
 
 export async function GET() {
@@ -16,7 +15,7 @@ export async function GET() {
 
     for (const race of formattedRaces) {
       if (race.platform == Platform.CUSTOM) {
-        race.participants = await prisma.runnerParticipation.findMany({
+        race.participants = await prisma.raceBasketClassification.findMany({
           where: { raceId: race.id }
         })
       }
@@ -34,7 +33,7 @@ interface RaceRequestData {
   isProcessed: boolean;
   platform: Platform;
   url: string;
-  participations: RunnerCustomParticipation[]; // Ajusta el tipo según la estructura real de 'participations'
+  participations: RunnerBasketClassification[]; // Ajusta el tipo según la estructura real de 'participations'
 }
 export async function POST(request: Request) {
   const { name, date, isProcessed, platform, url, participations } = await request.json() as RaceRequestData;
@@ -65,42 +64,16 @@ export async function POST(request: Request) {
     }
 
     if (platform == Platform.CUSTOM && participations.length != 0) {
-      const runners = await prisma.runner.findMany({})
-      const mapRunners = runners.reduce((map, p) => {
-        map.set(p.id, p)
-        return map
-      }, new Map<number, RunnerDetail>())
 
-      const filledParticipations = participations.map((p) => {
-        const runner = mapRunners.get(Number(p.runnerId))
-        if (!runner) throw Error('Error al rellenar el participantes. Runner no encontrado')
 
+      const filledParticipations = participations.map(({ id, ...rest }) => {
         return {
+          ...rest,
           raceId: newRace.id,
-          bibNumber: p.bib,
-          fullName: `${runner.name} ${runner.surname}`,
-          gender: '',
-          name: runner.name,
-          surname: runner.surname,
-          club: '',
-          finished: true,
-          runnerId: Number(p.runnerId),
-          category: '',
-
-          realPosition: p.realPosition,
-          realTime: p.realTime,
-          realPace: p.realPace,
-          officialPosition: p.officialPosition,
-          officialTime: p.officialTime,
-          officialPace: p.officialPace,
-          realCategoryPosition: p.realCategoryPosition,
-          realGenderPosition: p.realGenderPosition,
-          officialCategoryPosition: p.officialCategoryPosition,
-          officialGenderPosition: p.officialGenderPosition,
         }
       })
 
-      const newParticipants = await prisma.runnerParticipation.createManyAndReturn({
+      const newParticipants = await prisma.raceBasketClassification.createManyAndReturn({
         data: filledParticipations
       })
 

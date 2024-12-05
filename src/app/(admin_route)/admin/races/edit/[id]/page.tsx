@@ -29,28 +29,7 @@ export default function Page() {
         date: race.date,
         platform: race.platform,
         url: race.url,
-        participations: race.participants ? race.participants.map((value, index) => {
-            console.log(value)
-            return {
-                id: value.id.toString(),
-                runnerId: value.runnerId?.toString() ?? '0',
-                bib: value.bibNumber,
-                category: value.category,
-
-                // position: index + 1,
-                officialPosition: value.officialPosition,
-                officialTime: value.officialTime,
-                officialPace: value.officialPace,
-                officialCategoryPosition: value.officialCategoryPosition,
-                officialGenderPosition: value.officialGenderPosition,
-
-                realPosition: value.realPosition,
-                realTime: value.realTime,
-                realPace: value.realPace,
-                realCategoryPosition: value.realCategoryPosition,
-                realGenderPosition: value.realGenderPosition
-            }
-        }) : []
+        participations: race.participants || []
     }
 
     console.log(defaultValues)

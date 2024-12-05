@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Platform, RunnerCustomParticipation } from "@/type/race";
+import { Platform, RunnerBasketClassification } from "@/type/race";
 import { useEffect, useState } from "react";
 import RunnerParticipationTable from "@/components/races/runner-participantion-table";
 import { RunnerDetail } from "@/type/runner";
@@ -29,20 +29,14 @@ export const RaceFormSchema = z.object({
     platform: z.string().min(1, "Platform is required"),
     url: z.string().url("Must be a valid URL"),
     participations: z.array(z.object({
-        id: z.string(),
-        runnerId: z.string(),
-        bib: z.number(),
-        realPosition: z.number(),
-        realTime: z.string(),
-        realPace: z.string(),
-        officialPosition: z.number(),
-        officialTime: z.string(),
-        officialPace: z.string(),
-        category: z.string(),
-        realCategoryPosition: z.number(),
-        realGenderPosition: z.number(),
-        officialCategoryPosition: z.number(),
-        officialGenderPosition: z.number(),
+        id: z.number(),
+        runnerId: z.number(),
+        generalPosition: z.number(),
+        categoryPosition: z.number(),
+        localPosition: z.number(),
+        time: z.string(),
+        pace: z.string(),
+        bibNumber: z.number(),
     })),
 });
 
@@ -101,7 +95,7 @@ export default function RaceForm({ defaultValues, onSubmitRequest }: RaceFormTyp
         }
     }
 
-    const handleParticipationsChange = (participations: RunnerCustomParticipation[]) => {
+    const handleParticipationsChange = (participations: RunnerBasketClassification[]) => {
         console.log(participations)
         form.setValue('participations', participations);
     };

@@ -5,52 +5,55 @@ import { Table, TableBody, TableHead, TableHeader, TableRow, TableCell } from "@
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { ParticipationFormRow, RunnerSelectItems } from "./participation-form-row";
-import { INITIAL_PARTICIPATION } from "@/lib/constants";
-import { RunnerCustomParticipation } from "@/type/race";
-import { RunnerDetail, RunnerParticipation } from "@/type/runner";
+import { RunnerBasketClassification } from "@/type/race";
+import { RunnerDetail } from "@/type/runner";
 
+
+const INITIAL_PARTICIPATION: RunnerBasketClassification = {
+    id: 0,
+    runnerId: 0,
+    generalPosition: 0,
+    categoryPosition: 0,
+    localPosition: 0,
+    time: "00:11:00",
+    pace: '4:00',
+    bibNumber: 1234,
+};
 
 interface RunnerParticipationTableProps {
     runners: RunnerDetail[];
-    values: RunnerCustomParticipation[];
-    onChange: (runners: RunnerCustomParticipation[]) => void;
+    values: RunnerBasketClassification[];
+    onChange: (runners: RunnerBasketClassification[]) => void;
 }
 
 export default function RunnerParticipationTable({ runners, values, onChange }: RunnerParticipationTableProps) {
-    const [participations, setParticipations] = useState<RunnerCustomParticipation[]>(values);
-    const newRunnerSelectItems: RunnerSelectItems[] = runners ? runners.map((r) => {
+    const [participations, setParticipations] = useState<RunnerBasketClassification[]>(values);
+    const newRunnerSelectItems: RunnerSelectItems[] = runners.map((r) => {
         return {
             id: r.id,
             disabled: false,
             visible: true,
             data: r
         }
-    }) : [];
+    });
     const [runnerSelectItems, setRunnerSelectItems] = useState<RunnerSelectItems[]>(newRunnerSelectItems)
 
     const addParticipation = () => {
-        const participationValue = INITIAL_PARTICIPATION
-        participationValue.realPosition = participations.length + 1
-        participationValue.realCategoryPosition = participations.length + 1
-        participationValue.realGenderPosition = participations.length + 1
+        const newParticipationValue = INITIAL_PARTICIPATION
+        newParticipationValue.id = participations.length + 1
+        newParticipationValue.generalPosition = participations.length + 1
+        newParticipationValue.categoryPosition = participations.length + 1
+        newParticipationValue.localPosition = participations.length + 1
 
-        participationValue.officialPosition = participations.length + 1
-        participationValue.officialCategoryPosition = participations.length + 1
-        participationValue.officialGenderPosition = participations.length + 1
-
-        const newParticipation: RunnerCustomParticipation = {
-            id: `${participations.length + 1}`,
-            // position: participations.length + 1,
-            ...participationValue
-        };
+        const newParticipation: RunnerBasketClassification = { ...newParticipationValue };
         setParticipations([...participations, newParticipation]);
     };
 
-    const removeParticipation = (id: string) => {
+    const removeParticipation = (id: number) => {
         setParticipations(participations.filter(p => p.id !== id));
     };
 
-    const updateParticipation = (id: string, field: keyof RunnerCustomParticipation, value: string | number) => {
+    const updateParticipation = (id: number, field: keyof RunnerBasketClassification, value: string | number) => {
         setParticipations(participations.map(p =>
             p.id === id ? { ...p, [field]: value } : p
         ));
@@ -75,19 +78,14 @@ export default function RunnerParticipationTable({ runners, values, onChange }: 
                     <Table>
                         <TableHeader>
                             <TableRow className="border-gray-700 bg-gray-800/50">
-                                <TableHead className="text-gray-300">Pos.</TableHead>
+                                <TableHead className="text-gray-300">ID</TableHead>
                                 <TableHead className="text-gray-300">Runner</TableHead>
                                 <TableHead className="text-gray-300">Dorsal</TableHead>
-                                <TableHead className="text-gray-300">Real Pos.</TableHead>
-                                <TableHead className="text-gray-300">Real Tiempo</TableHead>
-                                <TableHead className="text-gray-300">Real Ritmo</TableHead>
-                                <TableHead className="text-gray-300">Real Cat. Pos.</TableHead>
-                                <TableHead className="text-gray-300">Real Gen. Pos.</TableHead>
-                                <TableHead className="text-gray-300">Official Pos</TableHead>
-                                <TableHead className="text-gray-300">Official Tiempo</TableHead>
-                                <TableHead className="text-gray-300">Official Ritmo</TableHead>
-                                <TableHead className="text-gray-300">Official Cat. Pos.</TableHead>
-                                <TableHead className="text-gray-300">Official Gen. Pos.</TableHead>
+                                <TableHead className="text-gray-300">Tiempo.</TableHead>
+                                <TableHead className="text-gray-300">Ritmo</TableHead>
+                                <TableHead className="text-gray-300">General Pos.</TableHead>
+                                <TableHead className="text-gray-300">Category Pos.</TableHead>
+                                <TableHead className="text-gray-300">Local Pos.</TableHead>
                                 <TableHead className="text-gray-300">Actions</TableHead>
                             </TableRow>
                         </TableHeader>

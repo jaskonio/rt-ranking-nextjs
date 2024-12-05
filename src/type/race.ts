@@ -43,23 +43,15 @@ export type RacesFormAdd = {
 
 }
 
-export interface RunnerCustomParticipation {
-  id: string;
-  runnerId: string;
-  bib: number;
-  category: string;
-
-  officialPosition: number;
-  officialTime: string;
-  officialPace: string;
-  officialCategoryPosition: number;
-  officialGenderPosition: number;
-
-  realPosition: number;
-  realTime: string;
-  realPace: string;
-  realCategoryPosition: number;
-  realGenderPosition: number
+export interface RunnerBasketClassification {
+  id: number;
+  runnerId: number;
+  generalPosition: number;
+  categoryPosition: number;
+  localPosition: number;
+  time: string;
+  pace: string;
+  bibNumber: number;
 }
 
 export type Races = {
@@ -70,7 +62,7 @@ export type Races = {
   platform: string
   processingStatus: string
   url: string;
-  participants?: RunnerParticipation[]
+  participants?: RunnerBasketClassification[]
 }
 
 export type RaceResponse = {

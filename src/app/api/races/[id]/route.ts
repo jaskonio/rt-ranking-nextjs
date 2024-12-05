@@ -17,7 +17,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     }
 
     if (formattedRace.platform == Platform.CUSTOM) {
-      formattedRace.participants = await prisma.runnerParticipation.findMany({
+      formattedRace.participants = await prisma.raceBasketClassification.findMany({
         where: { raceId: race.id }
       })
     }
@@ -46,6 +46,10 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     {
       ...updataData,
       date: updataData.date.toISOString().split('T')[0], // Formatear a 'YYYY-MM-DD'
+    }
+
+    if (formattedRace.platform == Platform.CUSTOM) {
+      // TODO
     }
 
     return Response.json({ success: true, race: formattedRace });

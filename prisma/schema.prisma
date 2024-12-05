@@ -59,6 +59,7 @@ model RaceBasketClassification {
   time             String
   pace             String
   createdAt        DateTime @default(now())
+  bibNumber        Int
   race             Race     @relation(fields: [raceId], references: [id])
   runner           Runner   @relation(fields: [runnerId], references: [id])
 }
