@@ -244,7 +244,7 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
                     runnerId: runnerId,
                     name: `${runner.name}, ${runner.surname}`,
                     bibNumber: 0,
-                    photoUrl: runner.photoUrl
+                    photoUrl: runner.photoUrl || ''
                 },
             ]);
         }
