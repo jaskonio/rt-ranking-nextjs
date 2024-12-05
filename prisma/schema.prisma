@@ -66,7 +66,7 @@ model RaceBasketClassification {
 
 model GlobalRaceBasketClassification {
   id             Int    @id @default(autoincrement())
-  runnerId       Int    @unique
+  runnerId       Int
   generalFirst   Int    @default(0)
   generalSecond  Int    @default(0)
   generalThird   Int    @default(0)
@@ -80,15 +80,17 @@ model GlobalRaceBasketClassification {
   teamsSecond    Int    @default(0)
   teamsThird     Int    @default(0)
   points         Float  @default(0.0)
+  leagueId       Int
+  league         League @relation(fields: [leagueId], references: [id])
   runner         Runner @relation(fields: [runnerId], references: [id])
 }
 
 model Runner {
-  id                             Int                             @id @default(autoincrement())
+  id                             Int                              @id @default(autoincrement())
   name                           String
   surname                        String
   photoUrl                       String?
-  GlobalRaceBasketClassification GlobalRaceBasketClassification?
+  GlobalRaceBasketClassification GlobalRaceBasketClassification[]
   leagueParticipant              LeagueParticipant[]
   RaceBasketClassification       RaceBasketClassification[]
   RunnerParticipation            RunnerParticipation[]
@@ -104,18 +106,20 @@ model RaceProcessingHistory {
 }
 
 model League {
-  id              Int                    @id @default(autoincrement())
-  name            String
-  startDate       DateTime
-  endDate         DateTime
-  scoringMethodId Int
-  photoUrl        String                 @default("")
-  visible         Boolean                @default(false)
-  scoringMethod   ScoringMethod          @relation(fields: [scoringMethodId], references: [id])
-  participants    LeagueParticipant[]
-  races           LeagueRace[]
-  rankings        LeagueRanking[]
-  rankingHistory  LeagueRankingHistory[]
+  id                             Int                              @id @default(autoincrement())
+  name                           String
+  startDate                      DateTime
+  endDate                        DateTime
+  scoringMethodId                Int
+  photoUrl                       String                           @default("")
+  visible                        Boolean                          @default(false)
+  type                           LeagueType                       @default(CIRCUITO)
+  globalRaceBasketClassification GlobalRaceBasketClassification[]
+  scoringMethod                  ScoringMethod                    @relation(fields: [scoringMethodId], references: [id])
+  participants                   LeagueParticipant[]
+  races                          LeagueRace[]
+  rankings                       LeagueRanking[]
+  rankingHistory                 LeagueRankingHistory[]
 }
 
 model LeagueParticipant {
@@ -183,4 +187,9 @@ model ScoringMethod {
   tertiaryOrder      String?
   pointsDistribution Json
   leagues            League[]
+}
+
+enum LeagueType {
+  CIRCUITO
+  BASKET
 }
