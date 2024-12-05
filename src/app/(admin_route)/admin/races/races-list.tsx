@@ -123,7 +123,7 @@ export default function RacesList({ data }: { data: Races[] }) {
                     <TableHead className="text-gray-300">Status</TableHead>
                     <TableHead className="text-gray-300">Processed</TableHead>
                     <TableHead className="text-gray-300">Participants</TableHead>
-                    <TableHead className="text-gray-300">Actions</TableHead>
+                    <TableHead className="text-gray-300 text-center">Actions</TableHead>
                 </TableRow>
             </TableHeader>
             <TableBody>
@@ -160,13 +160,13 @@ export default function RacesList({ data }: { data: Races[] }) {
                         <TableCell>
                             <div className="flex items-center gap-2">
                                 <Link href={`/admin/races/edit/${race.id}`}>
-                                    <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+                                    <Button variant="ghost" size="sm" className="text-gray-400">
                                         Edit
                                     </Button>
                                 </Link>
                                 <Button
                                     onClick={() => handleDelete(race.id)}
-                                    variant="ghost" size="sm" className="text-red-400 hover:text-white">
+                                    variant="ghost" size="sm" className="text-red-400">
                                     Elimnar
                                 </Button>
                                 <Button
@@ -174,7 +174,7 @@ export default function RacesList({ data }: { data: Races[] }) {
                                     variant="ghost"
                                     size="sm"
                                     disabled={processingId === race.id}
-                                    className="text-blue-400 hover:text-white"
+                                    className="text-blue-400"
                                 >
                                     {processingId === race.id ? (
                                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -186,7 +186,7 @@ export default function RacesList({ data }: { data: Races[] }) {
                                     href={race.url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-gray-400 hover:text-white"
+                                    className="text-gray-400"
                                 >
                                     <ExternalLink className="h-4 w-4" />
                                 </a>

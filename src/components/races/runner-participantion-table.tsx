@@ -4,18 +4,29 @@ import { useEffect, useState } from "react";
 import { Table, TableBody, TableHead, TableHeader, TableRow, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { ParticipationFormRow } from "./participation-form-row";
+import { ParticipationFormRow, RunnerSelectItems } from "./participation-form-row";
 import { INITIAL_PARTICIPATION } from "@/lib/constants";
 import { RunnerCustomParticipation } from "@/type/race";
-import { RunnerDetail } from "@/type/runner";
+import { RunnerDetail, RunnerParticipation } from "@/type/runner";
+
 
 interface RunnerParticipationTableProps {
     runners: RunnerDetail[];
+    values: RunnerCustomParticipation[];
     onChange: (runners: RunnerCustomParticipation[]) => void;
 }
 
-export default function RunnerParticipationTable({ runners, onChange }: RunnerParticipationTableProps) {
-    const [participations, setParticipations] = useState<RunnerCustomParticipation[]>([]);
+export default function RunnerParticipationTable({ runners, values, onChange }: RunnerParticipationTableProps) {
+    const [participations, setParticipations] = useState<RunnerCustomParticipation[]>(values);
+    const newRunnerSelectItems: RunnerSelectItems[] = runners ? runners.map((r) => {
+        return {
+            id: r.id,
+            disabled: false,
+            visible: true,
+            data: r
+        }
+    }) : [];
+    const [runnerSelectItems, setRunnerSelectItems] = useState<RunnerSelectItems[]>(newRunnerSelectItems)
 
     const addParticipation = () => {
         const participationValue = INITIAL_PARTICIPATION
@@ -29,7 +40,7 @@ export default function RunnerParticipationTable({ runners, onChange }: RunnerPa
 
         const newParticipation: RunnerCustomParticipation = {
             id: `${participations.length + 1}`,
-            position: participations.length + 1,
+            // position: participations.length + 1,
             ...participationValue
         };
         setParticipations([...participations, newParticipation]);
@@ -53,7 +64,7 @@ export default function RunnerParticipationTable({ runners, onChange }: RunnerPa
         <div className="space-y-4">
             <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-semibold text-white">Participantes</h2>
-                <Button onClick={addParticipation} className="bg-blue-600 hover:bg-blue-700">
+                <Button type="button" onClick={addParticipation} className="bg-blue-600 hover:bg-blue-700">
                     <Plus className="h-4 w-4 mr-2" />
                     Añadir Participante
                 </Button>
@@ -85,7 +96,7 @@ export default function RunnerParticipationTable({ runners, onChange }: RunnerPa
                                 <ParticipationFormRow
                                     key={participation.id}
                                     participation={participation}
-                                    runners={runners}
+                                    runnerSelectItems={runnerSelectItems}
                                     onUpdate={updateParticipation}
                                     onRemove={removeParticipation}
                                 />

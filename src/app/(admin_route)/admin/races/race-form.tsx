@@ -17,12 +17,13 @@ import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Platform, RacesFormAdd, RunnerCustomParticipation } from "@/type/race";
+import { Platform, RunnerCustomParticipation } from "@/type/race";
 import { useEffect, useState } from "react";
 import RunnerParticipationTable from "@/components/races/runner-participantion-table";
 import { RunnerDetail } from "@/type/runner";
 
-const formSchema = z.object({
+
+export const RaceFormSchema = z.object({
     name: z.string().min(1, "Race name is required"),
     date: z.string().min(1, "Date is required"),
     platform: z.string().min(1, "Platform is required"),
@@ -46,8 +47,8 @@ const formSchema = z.object({
 });
 
 type RaceFormType = {
-    defaultValues: RacesFormAdd;
-    onSubmitRequest: (payload: RacesFormAdd) => Promise<void>;
+    defaultValues: z.infer<typeof RaceFormSchema>;
+    onSubmitRequest: (payload: z.infer<typeof RaceFormSchema>) => Promise<void>;
 }
 export default function RaceForm({ defaultValues, onSubmitRequest }: RaceFormType) {
     const router = useRouter();
@@ -55,9 +56,10 @@ export default function RaceForm({ defaultValues, onSubmitRequest }: RaceFormTyp
     const [isLoading, setIsLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
     const [runners, setRunners] = useState<RunnerDetail[] | null>(null)
+    const [platform, setPlatform] = useState<string>(defaultValues.platform)
 
-    const form = useForm<z.infer<typeof formSchema>>({
-        resolver: zodResolver(formSchema),
+    const form = useForm<z.infer<typeof RaceFormSchema>>({
+        resolver: zodResolver(RaceFormSchema),
         defaultValues: defaultValues,
     });
 
@@ -83,12 +85,12 @@ export default function RaceForm({ defaultValues, onSubmitRequest }: RaceFormTyp
     if (isLoading) return (<p>Cargando...</p>);
     if (!runners) return (<p>Error al recuperar los datos</p>);
 
-    async function onSubmit(values: z.infer<typeof formSchema>) {
+    async function onSubmit(values: z.infer<typeof RaceFormSchema>) {
         setIsLoading(true);
         console.log(values);
         try {
             const payload = { ...values }
-            await onSubmitRequest(payload)
+            await onSubmitRequest(payload);
 
             router.push("/admin/races");
         } catch (error) {
@@ -155,7 +157,12 @@ export default function RaceForm({ defaultValues, onSubmitRequest }: RaceFormTyp
                     render={({ field }) => (
                         <FormItem>
                             <FormLabel className="text-white">Plataforma</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <Select
+                                onValueChange={(value) => {
+                                    field.onChange(value)
+                                    setPlatform(value)
+                                }}
+                                defaultValue={field.value}>
                                 <FormControl>
                                     <SelectTrigger className="bg-gray-700/50 border-gray-600 text-white">
                                         <SelectValue placeholder="Seleccion una plataforma" />
@@ -194,15 +201,17 @@ export default function RaceForm({ defaultValues, onSubmitRequest }: RaceFormTyp
                     )}
                 />
 
-                <FormField
-                    control={form.control}
-                    name="participations"
-                    render={() => (
-                        <RunnerParticipationTable
-                            runners={runners}
-                            onChange={handleParticipationsChange} />
-                    )}
-                />
+                {platform == Platform.CUSTOM &&
+                    <FormField
+                        control={form.control}
+                        name="participations"
+                        render={() => (
+                            <RunnerParticipationTable
+                                runners={runners}
+                                values={defaultValues.participations}
+                                onChange={handleParticipationsChange} />
+                        )}
+                    />}
 
                 <div className="flex justify-end space-x-4">
                     <Link href="/admin/races">

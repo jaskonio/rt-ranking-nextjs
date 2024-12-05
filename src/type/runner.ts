@@ -1,3 +1,28 @@
+export type RunnerParticipation = {
+    id: number;
+    raceId: number;
+    runnerId: number | null;
+    bibNumber: number;
+    category: string;
+    fullName: string;
+    gender: string;
+    name: string;
+    surname: string;
+    club: string;
+    finished: boolean;
+
+    officialPosition: number;
+    officialTime: string;
+    officialPace: string;
+    officialCategoryPosition: number;
+    officialGenderPosition: number;
+
+    realPosition: number;
+    realTime: string;
+    realPace: string;
+    realCategoryPosition: number;
+    realGenderPosition: number
+}
 
 export type RunnerLeagueDetail = {
     id: number;
@@ -26,7 +51,7 @@ export type RunnerDetail = {
     id: number;
     name: string;
     surname: string;
-    photoUrl: string;
+    photoUrl: string | null;
 };
 
 export type RunnerFormProps = {

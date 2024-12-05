@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Races, RacesFormAdd } from "@/type/race";
-import RaceForm from "../../race-form";
+import RaceForm, { RaceFormSchema } from "../../race-form";
+import { z } from "zod";
 
 
 export default function Page() {
@@ -23,6 +24,36 @@ export default function Page() {
     if (isLoading) return <header>Loading...</header>
     if (!race) return <p>No hay carrera</p>
 
+    const defaultValues: z.infer<typeof RaceFormSchema> = {
+        name: race.name,
+        date: race.date,
+        platform: race.platform,
+        url: race.url,
+        participations: race.participants ? race.participants.map((value, index) => {
+            console.log(value)
+            return {
+                id: value.id.toString(),
+                runnerId: value.runnerId?.toString() ?? '0',
+                bib: value.bibNumber,
+                category: value.category,
+
+                // position: index + 1,
+                officialPosition: value.officialPosition,
+                officialTime: value.officialTime,
+                officialPace: value.officialPace,
+                officialCategoryPosition: value.officialCategoryPosition,
+                officialGenderPosition: value.officialGenderPosition,
+
+                realPosition: value.realPosition,
+                realTime: value.realTime,
+                realPace: value.realPace,
+                realCategoryPosition: value.realCategoryPosition,
+                realGenderPosition: value.realGenderPosition
+            }
+        }) : []
+    }
+
+    console.log(defaultValues)
     const onSubmitRequest = async (payload: RacesFormAdd) => {
         const response = await fetch(`/api/races/${id}`, {
             method: "PUT",
@@ -38,7 +69,7 @@ export default function Page() {
     return (
         <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16 space-y-4 animate-fade-in">
-                <h1 className="text-xl font-bold text-white">
+                <h1 className="text-5xl font-bold text-white">
                     Editar Carrera
                 </h1>
                 <p className="text-gray-300">
@@ -46,7 +77,7 @@ export default function Page() {
                 </p>
             </div>
             <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-8 shadow-xl animate-slide-in">
-                <RaceForm defaultValues={race} onSubmitRequest={onSubmitRequest}></RaceForm>
+                <RaceForm defaultValues={defaultValues} onSubmitRequest={onSubmitRequest}></RaceForm>
             </div>
         </div>
     );

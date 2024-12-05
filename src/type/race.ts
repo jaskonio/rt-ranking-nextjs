@@ -1,6 +1,9 @@
+import { RunnerParticipation } from "./runner";
+
 export enum Platform {
   SPORTMANIAC = 'sportmaniacs',
   TOPRUN = 'toprun',
+  CUSTOM = 'custom',
   ANOTHER = 'another',
 }
 
@@ -31,32 +34,21 @@ export interface PlatformExtractor {
   extractRunnerData(url: string): Promise<RunnerData[]>;
 }
 
-export type Races = {
-  id: number;
-  name: string;
-  date: string;
-  isProcessed: boolean;
-  platform: string
-  processingStatus: string
-  url: string;
-}
-
 
 export type RacesFormAdd = {
   name: string;
   date: string;
   url: string;
-  platform: string
+  platform: string;
+
 }
 
 export interface RunnerCustomParticipation {
   id: string;
-
   runnerId: string;
   bib: number;
   category: string;
 
-  position: number
   officialPosition: number;
   officialTime: string;
   officialPace: string;
@@ -68,4 +60,20 @@ export interface RunnerCustomParticipation {
   realPace: string;
   realCategoryPosition: number;
   realGenderPosition: number
+}
+
+export type Races = {
+  id: number;
+  name: string;
+  date: string;
+  isProcessed: boolean;
+  platform: string
+  processingStatus: string
+  url: string;
+  participants?: RunnerParticipation[]
+}
+
+export type RaceResponse = {
+  success: boolean;
+  race: Races
 }

@@ -1,5 +1,5 @@
 import prisma from '@/lib/db';
-import { Races } from '@/type/race';
+import { Platform, Races } from '@/type/race';
 
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -11,10 +11,15 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     if (!race) return Response.json({ success: false, error: 'Race not found' }, { status: 404 });
 
 
-    const formattedRace: Races =
-    {
+    const formattedRace: Races = {
       ...race,
       date: race.date.toISOString().split('T')[0], // Formatear a 'YYYY-MM-DD'
+    }
+
+    if (formattedRace.platform == Platform.CUSTOM) {
+      formattedRace.participants = await prisma.runnerParticipation.findMany({
+        where: { raceId: race.id }
+      })
     }
 
     return Response.json({ success: true, race: formattedRace });

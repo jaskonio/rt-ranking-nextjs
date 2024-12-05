@@ -7,45 +7,46 @@ import { Check, ChevronsUpDown, Trash2 } from "lucide-react";
 import { RunnerCustomParticipation } from "@/type/race";
 import { RunnerDetail } from "@/type/runner";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 
+export type RunnerSelectItems = {
+    visible: boolean;
+    disabled: boolean;
+    id: number;
+    data: RunnerDetail;
+}
 
 interface ParticipationFormRowProps {
-    runners: RunnerDetail[];
+    runnerSelectItems: RunnerSelectItems[];
     participation: RunnerCustomParticipation;
     onUpdate: (id: string, field: keyof RunnerCustomParticipation, value: string | number) => void;
     onRemove: (id: string) => void;
 }
 
-export function ParticipationFormRow({
-    runners,
-    participation,
-    onUpdate,
-    onRemove,
-}: ParticipationFormRowProps) {
+export function ParticipationFormRow({ runnerSelectItems, participation, onUpdate, onRemove }: ParticipationFormRowProps) {
     const [open, setOpen] = useState(false)
-    const [value, setValue] = useState("")
+    const [value, setValue] = useState(participation.runnerId)
 
     const showPopoverPlaceholder = () => {
         if (!value) {
             return "Select Runner..."
         }
-        const selectedRunner = runners.find((runner) => runner.id.toString() === value)
+        const selectedRunner = runnerSelectItems.find((runnerSelectItem) => runnerSelectItem.id.toString() === value)
 
         if (!selectedRunner) {
             return "Select Runner..."
         }
 
-        return `${selectedRunner.name}, ${selectedRunner.surname}`
+        return `${selectedRunner.data.name}, ${selectedRunner.data.name}`
     }
 
     return (
         <TableRow className="border-gray-700">
             <TableCell>
-                <span className="text-white"> {participation.position}</span>
+                <span className="text-white"> {participation.id}</span>
             </TableCell>
 
             <TableCell>
@@ -67,30 +68,31 @@ export function ParticipationFormRow({
                             <CommandList>
                                 <CommandEmpty>No runner found.</CommandEmpty>
                                 <CommandGroup heading="Runners">
-                                    {runners.map((runner, index) => (
+                                    {runnerSelectItems.map((runnerSelectItem, index) => (
                                         <CommandItem
                                             key={index}
                                             onSelect={() => {
-                                                setValue(runner.id.toString())
-                                                onUpdate(participation.id, "runnerId", runner.id.toString())
+                                                setValue(runnerSelectItem.id.toString())
+                                                onUpdate(participation.id, "runnerId", runnerSelectItem.data.id.toString())
                                                 setOpen(false)
                                             }}
                                             className=" hover:bg-gray-700"
+                                            disabled={runnerSelectItem.disabled}
                                         >
                                             <Check
                                                 className={cn(
                                                     "mr-2 h-4 w-4",
-                                                    runner.id.toString() === value
+                                                    runnerSelectItem.data.id.toString() === value
                                                         ? "opacity-100"
                                                         : "opacity-0"
                                                 )}
                                             />
-                                            {runner.name} {runner.surname}
+                                            {runnerSelectItem.data.name} {runnerSelectItem.data.surname}
                                             <div className="flex-shrink-0 group">
                                                 <div className="relative ml-2 w-10 h-10 rounded-full overflow-hidden ring-2 ring-white/20 ">
                                                     <Image
-                                                        src={runner.photoUrl}
-                                                        alt={runner.name}
+                                                        src={runnerSelectItem.data.photoUrl || ''}
+                                                        alt={runnerSelectItem.data.name}
                                                         fill
                                                         className="object-cover"
                                                     />

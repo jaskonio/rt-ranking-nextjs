@@ -1,25 +1,30 @@
 "use client";
 
-import { Platform, RacesFormAdd } from "@/type/race";
-import RaceForm from "../race-form";
+import { Platform, RaceResponse } from "@/type/race";
+import RaceForm, { RaceFormSchema } from "../race-form";
+import { z } from "zod";
 
 
 export default function NewRacePage() {
-    const defaultValues = {
+    const defaultValues: z.infer<typeof RaceFormSchema> = {
         name: '',
         date: '',
         url: '',
-        platform: Object.values(Platform)[0]
+        platform: Object.values(Platform)[0],
+        participations: []
     }
 
-    const onSubmitRequest = async (payload: RacesFormAdd) => {
-        await fetch("/api/races", {
+    const onSubmitRequest = async (payload: z.infer<typeof RaceFormSchema>) => {
+        const newRaceResponse = await fetch("/api/races", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify(payload),
         });
+
+        const newRaceJsonResponse: RaceResponse = await newRaceResponse.json()
+        if (!newRaceJsonResponse.success) throw new Error("Error al crear la carrera")
     }
 
     return (
