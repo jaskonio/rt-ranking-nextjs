@@ -1,5 +1,3 @@
-import { RunnerParticipation } from "./runner";
-
 export enum Platform {
   SPORTMANIAC = 'sportmaniacs',
   TOPRUN = 'toprun',

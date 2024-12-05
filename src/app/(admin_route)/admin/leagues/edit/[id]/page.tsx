@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import LeagueForm from "../../league-form";
-import { League, LeagueFormProps, LeagueResponse, LeagueSetParticipantResponse, LeagueSetRacesResponse } from "@/type/league";
+import LeagueForm, { LeagueFormSchematType } from "../../league-form";
+import { League, LeagueResponse, LeagueSetParticipantResponse, LeagueSetRacesResponse } from "@/type/league";
 
 
 export default function Page() {
@@ -23,11 +23,14 @@ export default function Page() {
     if (isLoading) return <header>Loading...</header>
     if (!league) return <p>No existe la Liga</p>
 
-    const defaultValues: LeagueFormProps = {
+    const defaultValues: LeagueFormSchematType = {
         name: league.name,
         startDate: league.startDate,
         endDate: league.endDate,
         scoringMethodId: league.scoringMethodId.toString(),
+        photoUrl: league.photoUrl,
+        visible: league.visible,
+        type: league.type,
         participants: league.participants.map((p) => {
             return {
                 id: p.id,
@@ -43,12 +46,9 @@ export default function Page() {
                 order: r.order
             }
         }),
-        imageContent: '',
-        imageUrl: league.photoUrl,
-        visible: league.visible
     }
 
-    const onSubmitRequest = async (payload: LeagueFormProps) => {
+    const onSubmitRequest = async (payload: LeagueFormSchematType) => {
         console.log(payload)
 
         const formData = new FormData();
@@ -59,11 +59,9 @@ export default function Page() {
         formData.append("scoringMethodId", payload.scoringMethodId);
         formData.append("visible", String(payload.visible));
 
-        if (payload.imageContent) {
-            const imageBlob = await fetch(payload.imageContent).then((res) => res.blob());
-            const imageFile = new File([imageBlob], "banner.jpg", { type: imageBlob.type });
-            formData.append("imageContent", imageFile);
-        }
+        const imageBlob = await fetch(payload.photoUrl).then((res) => res.blob());
+        const imageFile = new File([imageBlob], "banner.jpg", { type: imageBlob.type });
+        formData.append("imageContent", imageFile);
 
         const leagueId = id
 

@@ -1,5 +1,10 @@
 import { RunnerLeagueDetail } from "./runner";
 
+export enum LeagueType {
+    CIRCUITO = 'CIRCUITO',
+    BASKET = 'BASKET',
+}
+
 export type LeagueParticipant = {
     id: number;
     leagueId: number;
@@ -37,49 +42,10 @@ export type League = {
     photoUrl: string;
     scoringMethodId: number
     scoringMethod: ScoringMethod;
+    type: LeagueType;
+    visible: boolean;
     participants: LeagueParticipant[]
     races: LeagueRace[];
-    visible: boolean
-}
-
-export type LeagueResponses = {
-    success: boolean
-    leagues: League[]
-}
-
-export type LeagueResponse = {
-    success: boolean
-    league: League
-}
-
-export type LeagueFormProps = {
-    name: string;
-    startDate: string;
-    endDate: string;
-    scoringMethodId: string;
-    participants: { id?: number, runnerId: number, bibNumber: number, disqualified_at_race_order?: number }[];
-    races: { id?: number, raceId: number, order: number }[]
-    imageUrl: string
-    imageContent: string;
-    visible: boolean
-}
-
-export type LeagueSetParticipantResponse = {
-    success: boolean;
-    added: { runnerId: number; bibNumber: number }[];
-    failed: { runnerId: number; bibNumber: number; error: string }[];
-}
-
-export type LeagueSetRacesResponse = {
-    success: boolean;
-    added: { id: number; leagueId: number, raceId: number, order: number }[];
-    failed: { raceId: number; order: number; error: string }[];
-}
-
-export type LeagueUpdateRacesResponse = {
-    success: boolean;
-    updated: { id: number; leagueId: number, raceId: number, order: number }[];
-    failed: { raceId: number; order: number; error: string }[];
 }
 
 export type RacesHistoryRanking = {
@@ -98,7 +64,36 @@ export type LeagueHistoryRanking = {
     races: RacesHistoryRanking[];
 }
 
+// API RESPONSE
+export type LeagueResponses = {
+    success: boolean
+    leagues: League[]
+}
+
+export type LeagueResponse = {
+    success: boolean
+    league: League
+}
+
 export type LeagueHistoryRankingResponse = {
     success: boolean;
     historyRanking: LeagueHistoryRanking;
+}
+
+export type LeagueSetParticipantResponse = {
+    success: boolean;
+    added: { runnerId: number; bibNumber: number }[];
+    failed: { runnerId: number; bibNumber: number; error: string }[];
+}
+
+export type LeagueSetRacesResponse = {
+    success: boolean;
+    added: { id: number; leagueId: number, raceId: number, order: number }[];
+    failed: { raceId: number; order: number; error: string }[];
+}
+
+export type LeagueUpdateRacesResponse = {
+    success: boolean;
+    updated: { id: number; leagueId: number, raceId: number, order: number }[];
+    failed: { raceId: number; order: number; error: string }[];
 }

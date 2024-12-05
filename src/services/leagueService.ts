@@ -1,6 +1,6 @@
 import prisma from "@/lib/db";
 import { sortPaces, sortTimes } from "@/lib/utils";
-import { LeagueHistoryRanking } from "@/type/league";
+import { LeagueHistoryRanking, LeagueType } from "@/type/league";
 import { RunnerLeagueDetail } from "@/type/runner";
 import { LeagueParticipant, LeagueRanking, RunnerParticipation, ScoringMethod } from "@prisma/client";
 
@@ -11,10 +11,12 @@ type LeagueProp = {
     scoringMethodId: number;
     photoUrl: string;
     visible: boolean;
+    type: LeagueType;
 }
+
 export const createLeague = async (data: LeagueProp) => {
     return await prisma.league.create({
-        data,
+        data: data
     });
 }
 

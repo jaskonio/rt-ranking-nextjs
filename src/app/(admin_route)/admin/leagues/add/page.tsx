@@ -1,23 +1,23 @@
 "use client";
 
-import LeagueForm from "../league-form";
-import { LeagueFormProps, LeagueResponse, LeagueSetParticipantResponse, LeagueSetRacesResponse } from "@/type/league";
+import LeagueForm, { LeagueFormSchematType } from "../league-form";
+import { LeagueResponse, LeagueSetParticipantResponse, LeagueSetRacesResponse, LeagueType } from "@/type/league";
 
 
 export default function NewRacePage() {
-    const defaultValues: LeagueFormProps = {
+    const defaultValues: LeagueFormSchematType = {
         name: '',
         startDate: '',
         endDate: '',
         scoringMethodId: '0',
         participants: [],
         races: [],
-        imageContent: '',
-        imageUrl: '',
+        photoUrl: '',
         visible: false,
+        type: LeagueType.CIRCUITO
     }
 
-    const onSubmitRequest = async (payload: LeagueFormProps) => {
+    const onSubmitRequest = async (payload: LeagueFormSchematType) => {
         const formData = new FormData();
 
         formData.append("name", payload.name);
@@ -25,12 +25,14 @@ export default function NewRacePage() {
         formData.append("endDate", payload.endDate);
         formData.append("scoringMethodId", payload.scoringMethodId);
         formData.append("visible", String(payload.visible));
+        formData.append("type", payload.type);
 
-        if (payload.imageContent) {
-            const imageBlob = await fetch(payload.imageContent).then((res) => res.blob());
-            const imageFile = new File([imageBlob], "banner.jpg", { type: imageBlob.type });
-            formData.append("imageContent", imageFile);
-        }
+        const imageBlob = await fetch(payload.photoUrl).then((res) => res.blob());
+        const imageFile = new File([imageBlob], "banner.jpg", { type: imageBlob.type });
+        formData.append("photo", imageFile);
+
+        formData.append("participants", JSON.stringify(payload.participants));
+        formData.append("races", JSON.stringify(payload.races));
 
         const newLeagueResponse = await fetch("/api/leagues", {
             method: "POST",
@@ -39,31 +41,6 @@ export default function NewRacePage() {
 
         const newLeagueJsonResponse: LeagueResponse = await newLeagueResponse.json()
         if (!newLeagueJsonResponse.success) throw new Error("Error al crear la nueva Liga")
-
-        const leagueId = newLeagueJsonResponse.league.id
-        // set participants
-        const participantsResponse = await fetch(`/api/leagues/${leagueId}/participants`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(payload.participants),
-        });
-
-        const participantsJsonResponse: LeagueSetParticipantResponse = await participantsResponse.json()
-        if (!participantsJsonResponse.success) throw new Error("Error al asignar los nuevos participantes")
-
-        // set races
-        const racesResponse = await fetch(`/api/leagues/${leagueId}/races`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(payload.races),
-        });
-
-        const racesJsonResponse: LeagueSetRacesResponse = await racesResponse.json()
-        if (!racesJsonResponse.success) throw new Error("Error al asignar las nuevas carreras")
     }
 
     return (

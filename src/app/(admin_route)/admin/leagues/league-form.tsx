@@ -34,16 +34,20 @@ import { Check, ChevronsUpDown } from "lucide-react";
 import { ScoringMethodDetail } from "@/type/scoring-method";
 import { Races } from "@/type/race";
 import { RunnerDetail } from "@/type/runner";
-import { LeagueFormProps } from "@/type/league";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CreateLeagueSkeleton } from "@/components/create-league-skeleton";
+import { LeagueType } from "@/type/league";
 
 
-const formSchema = z.object({
+const LeagueFormSchema = z.object({
     name: z.string().min(1, "League name is required"),
     startDate: z.string().min(1, "Start date is required"),
     endDate: z.string().min(1, "End date is required"),
     scoringMethodId: z.string().min(1, "Scoring method is required"),
+    photoUrl: z.string().min(1, "Foto is required"),
+    visible: z.boolean(),
+    type: z.string().min(1, "Foto is required"),
+
     participants: z.array(z.object({
         id: z.number().optional(),
         runnerId: z.number(),
@@ -55,12 +59,13 @@ const formSchema = z.object({
         raceId: z.number(),
         order: z.number(),
     })),
-    visible: z.boolean(),
 });
 
+export type LeagueFormSchematType = z.infer<typeof LeagueFormSchema>
+
 type LeagueFormType = {
-    defaultValues: LeagueFormProps;
-    onSubmitRequest: (payload: LeagueFormProps) => Promise<void>;
+    defaultValues: LeagueFormSchematType;
+    onSubmitRequest: (payload: LeagueFormSchematType) => Promise<void>;
 }
 export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFormType) {
     const [isLoading, setIsLoading] = useState(true);
@@ -112,7 +117,7 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
 
     const [openRunner, setOpenRunner] = useState(false);
 
-    const [bannerPreview, setBannerPreview] = useState<string | null>(defaultValues.imageContent || defaultValues.imageUrl || null);
+    const [bannerPreview, setBannerPreview] = useState<string | null>(defaultValues.photoUrl || null);
 
     useEffect(() => {
         const searchDefaultSelectedRace = defaultValues.races.map((dr) => {
@@ -142,8 +147,8 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
         setSelectedParticipants(searchDefaultSelectedParticipant)
     }, [runners, defaultValues.participants])
 
-    const form = useForm<z.infer<typeof formSchema>>({
-        resolver: zodResolver(formSchema),
+    const form = useForm<LeagueFormSchematType>({
+        resolver: zodResolver(LeagueFormSchema),
         defaultValues: defaultValues,
     });
 
@@ -151,7 +156,7 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
 
     if (!scoringMethods || !availableRaces || !runners) return <p>Error al recuperar los datos</p>
 
-    const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    const onSubmit = async (values: LeagueFormSchematType) => {
         console.log('onSubmit')
         console.log(values)
 
@@ -160,21 +165,7 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
 
         setIsLoading(true);
         try {
-            const payload: LeagueFormProps = {
-                name: values.name,
-                endDate: values.endDate,
-                startDate: values.startDate,
-                scoringMethodId: values.scoringMethodId,
-                participants: values.participants,
-                races: values.races,
-                imageUrl: defaultValues.imageUrl,
-                imageContent: defaultValues.imageContent,
-                visible: values.visible,
-            }
-
-            console.log(payload)
-
-            await onSubmitRequest(payload)
+            await onSubmitRequest(values)
 
             router.push("/admin/leagues");
         } catch (error) {
@@ -268,6 +259,7 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
             const reader = new FileReader();
             reader.onloadend = () => {
                 setBannerPreview(reader.result as string);
+                form.setValue('photoUrl', reader.result as string)
             };
             reader.readAsDataURL(file);
         }
@@ -443,6 +435,32 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
 
                     <FormField
                         control={form.control}
+                        name="type"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel className="text-white">Tipo de Liga</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                        <div className="relative">
+                                            <Calculator className="absolute left-3 top-3 h-5 w-5 text-gray-400 z-10" />
+                                            <SelectTrigger className="bg-gray-700/50 border-gray-600 text-white pl-10">
+                                                <SelectValue placeholder="Selecciona el tipo de Liga" />
+                                            </SelectTrigger>
+                                        </div>
+                                    </FormControl>
+                                    <SelectContent className="bg-gray-800 border-gray-700">
+                                        {Object.values(LeagueType).map((a, index) => (
+                                            <SelectItem key={index} value={a} className="text-white hover:bg-gray-700">{a}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
                         name="visible"
                         render={({ field }) => (
                             <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border border-gray-100 p-4">
@@ -512,7 +530,7 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
                                                 <div className="flex-shrink-0 group">
                                                     <div className="relative ml-2 w-10 h-10 rounded-full overflow-hidden ring-2 ring-white/20 ">
                                                         <Image
-                                                            src={runner.photoUrl}
+                                                            src={runner.photoUrl || ''}
                                                             alt={runner.name}
                                                             fill
                                                             className="object-cover"
