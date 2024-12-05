@@ -8,18 +8,19 @@ datasource db {
 }
 
 model Race {
-  id                   Int                     @id @default(autoincrement())
-  name                 String
-  date                 DateTime
-  isProcessed          Boolean                 @default(false)
-  platform             String
-  processingStatus     String                  @default("PENDING")
-  url                  String
-  leagueRaces          LeagueRace[]
-  leagueRankings       LeagueRanking[]
-  leagueRankingHistory LeagueRankingHistory[]
-  history              RaceProcessingHistory[]
-  participations       RunnerParticipation[]
+  id                       Int                        @id @default(autoincrement())
+  name                     String
+  date                     DateTime
+  isProcessed              Boolean                    @default(false)
+  platform                 String
+  processingStatus         String                     @default("PENDING")
+  url                      String
+  leagueRaces              LeagueRace[]
+  leagueRankings           LeagueRanking[]
+  leagueRankingHistory     LeagueRankingHistory[]
+  RaceBasketClassification RaceBasketClassification[]
+  history                  RaceProcessingHistory[]
+  participations           RunnerParticipation[]
 }
 
 model RunnerParticipation {
@@ -48,13 +49,48 @@ model RunnerParticipation {
   runner                   Runner? @relation(fields: [runnerId], references: [id])
 }
 
+model RaceBasketClassification {
+  id               Int      @id @default(autoincrement())
+  runnerId         Int
+  raceId           Int
+  generalPosition  Int
+  categoryPosition Int
+  localPosition    Int
+  time             String
+  pace             String
+  createdAt        DateTime @default(now())
+  race             Race     @relation(fields: [raceId], references: [id])
+  runner           Runner   @relation(fields: [runnerId], references: [id])
+}
+
+model GlobalRaceBasketClassification {
+  id             Int    @id @default(autoincrement())
+  runnerId       Int    @unique
+  generalFirst   Int    @default(0)
+  generalSecond  Int    @default(0)
+  generalThird   Int    @default(0)
+  categoryFirst  Int    @default(0)
+  categorySecond Int    @default(0)
+  categoryThird  Int    @default(0)
+  localFirst     Int    @default(0)
+  localSecond    Int    @default(0)
+  localThird     Int    @default(0)
+  teamsFirst     Int    @default(0)
+  teamsSecond    Int    @default(0)
+  teamsThird     Int    @default(0)
+  points         Float  @default(0.0)
+  runner         Runner @relation(fields: [runnerId], references: [id])
+}
+
 model Runner {
-  id                  Int                   @id @default(autoincrement())
-  name                String
-  surname             String
-  photoUrl            String?
-  leagueParticipant   LeagueParticipant[]
-  RunnerParticipation RunnerParticipation[]
+  id                             Int                             @id @default(autoincrement())
+  name                           String
+  surname                        String
+  photoUrl                       String?
+  GlobalRaceBasketClassification GlobalRaceBasketClassification?
+  leagueParticipant              LeagueParticipant[]
+  RaceBasketClassification       RaceBasketClassification[]
+  RunnerParticipation            RunnerParticipation[]
 }
 
 model RaceProcessingHistory {
