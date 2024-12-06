@@ -31,7 +31,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     const startDate = formData.get("startDate") as string;
     const endDate = formData.get("endDate") as string;
     const scoringMethodId = formData.get("scoringMethodId") as string;
-    const bannerFile = formData.get("photo") as File;
+    // const bannerFile = formData.get("photo") as File;
     const visible = formData.get("visible") as string;
     const type = formData.get("type") as LeagueType;
     const participantsJsonString = formData.get("participants") as string;

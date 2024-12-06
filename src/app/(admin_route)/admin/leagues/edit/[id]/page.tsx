@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import LeagueForm, { LeagueFormSchematType } from "../../league-form";
-import { League, LeagueResponse, LeagueSetParticipantResponse, LeagueSetRacesResponse } from "@/type/league";
+import { League, LeagueResponse } from "@/type/league";
 
 
 export default function Page() {

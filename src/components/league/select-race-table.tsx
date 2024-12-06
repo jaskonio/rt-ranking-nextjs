@@ -1,6 +1,6 @@
 "use client"
 
-import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
+import { DragDropContext, Droppable, DropResult } from "@hello-pangea/dnd";
 import { LeagueRace } from "@/type/league";
 import { Races } from "@/type/race";
 import SelectRaceForm from "./select-race-form";

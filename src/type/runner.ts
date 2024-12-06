@@ -51,14 +51,14 @@ export type RunnerDetail = {
     id: number;
     name: string;
     surname: string;
-    photoUrl: string | null;
+    photoUrl: string;
 };
 
 export type RunnerFormProps = {
     name: string;
     surname: string;
     photoContent?: string;
-    photoUrl?: string;
+    photoUrl: string;
 }
 
 export type RunnerResponse = {

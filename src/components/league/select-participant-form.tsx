@@ -56,9 +56,9 @@ export default function SelectParticipantForm({ runners, availableRaces, races, 
                             </SelectTrigger>
                         </div>
                         <SelectContent className="bg-gray-800 border-gray-700">
-                            {races.map((race) => {
+                            {races.map((race, index) => {
                                 const availableRace = availableRaces.find(r => r.id == race.raceId)
-                                if (!availableRace) return <span>Carrera no encontrada</span>
+                                if (!availableRace) return <span key={index}>Carrera no encontrada</span>
 
                                 return (
                                     <SelectItem

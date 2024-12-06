@@ -36,7 +36,7 @@ export type ScoringMethodFormSchema = z.infer<typeof ScoringMethodSchema>
 
 type ScoringMethodAddType = {
     defaultValues: ScoringMethodFormSchema;
-    onSubmitRequest: (payload: ScoringMethodFormSchema) => Promise<any>;
+    onSubmitRequest: (payload: ScoringMethodFormSchema) => Promise<void>;
 }
 
 export default function ScoringMethodAdd({ defaultValues, onSubmitRequest }: ScoringMethodAddType) {

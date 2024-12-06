@@ -1,7 +1,7 @@
 "use client";
 
 import LeagueForm, { LeagueFormSchematType } from "../league-form";
-import { LeagueResponse, LeagueSetParticipantResponse, LeagueSetRacesResponse, LeagueType } from "@/type/league";
+import { LeagueResponse, LeagueType } from "@/type/league";
 
 
 export default function NewRacePage() {

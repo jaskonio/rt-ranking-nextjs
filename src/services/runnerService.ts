@@ -1,6 +1,6 @@
 import prisma from '../lib/db';
 import { Runner } from '@prisma/client';
-import { uploadToS3 } from './awsService';
+
 
 export const addRunner = async (data: Omit<Runner, 'id' | 'photoUrl'>, fileName: string): Promise<Runner> => {
     return prisma.runner.create({

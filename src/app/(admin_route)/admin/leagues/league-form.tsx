@@ -128,8 +128,8 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
 
             router.push("/admin/leagues");
         } catch (error) {
-            const message = error instanceof Error
-            setErrorMessage('Error al guardar');
+            const message = error instanceof Error ? error.message : 'Error al guardar'
+            setErrorMessage(message);
         } finally {
             setIsLoading(false);
         }
