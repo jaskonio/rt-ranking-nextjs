@@ -1,5 +1,5 @@
 import { saveBannerContent } from "@/services/awsService";
-import { addParticipant, addRaceToLeague, createLeague, getAllLeagues } from "@/services/leagueService";
+import { createLeague, getAllLeagues } from "@/services/leagueService";
 import { LeagueParticipant, LeagueRace, LeagueType } from "@/type/league";
 
 export async function GET() {
@@ -19,19 +19,6 @@ export async function GET() {
     }
 }
 
-type LeagueResponse = {
-    id: number;
-    name: string;
-    startDate: Date;
-    endDate: Date;
-    scoringMethodId: number;
-    photoUrl: string;
-    visible: boolean;
-    type: 'CIRCUITO' | 'BASKET';
-    participants: LeagueParticipant[];
-    races: LeagueRace[];
-};
-
 export async function POST(request: Request) {
     try {
         const formData = await request.formData();
@@ -45,6 +32,9 @@ export async function POST(request: Request) {
         const participantsJsonString = formData.get("participants") as string;
         const racesJsonString = formData.get("races") as string;
 
+        const participants = JSON.parse(participantsJsonString) as LeagueParticipant[]
+        const races = JSON.parse(racesJsonString) as LeagueRace[]
+
         // Validar los datos
         // Normalización de los datos
         const normalizedStartDate = new Date(startDate)
@@ -52,7 +42,7 @@ export async function POST(request: Request) {
 
         const bannerFileUrl = await saveBannerContent();
 
-        const baseLeague = await createLeague({
+        const newLeague = await createLeague({
             name,
             startDate: normalizedStartDate,
             endDate: normalizedEndDate,
@@ -60,42 +50,9 @@ export async function POST(request: Request) {
             photoUrl: bannerFileUrl,
             visible: Boolean(visible),
             type,
+            participants: participants.map(({ id, ...rest }) => ({ ...rest })),
+            races: races.map(({ id, ...rest }) => ({ ...rest }))
         })
-
-        // set participants
-        const participants = JSON.parse(participantsJsonString) as LeagueParticipant[]
-
-        const addedParticipants = await Promise.all(
-            participants.map(async (participant) => {
-                const { runnerId, bibNumber } = participant;
-                try {
-                    return await addParticipant(baseLeague.id, runnerId, bibNumber);
-                } catch (error) {
-                    console.error(`Error al añadir participante: RunnerID=${runnerId}, BibNumber=${bibNumber}`, error);
-                    return null;
-                }
-            })
-        )
-
-        // set races
-        const races = JSON.parse(racesJsonString) as LeagueRace[]
-        const addedRaces = await Promise.all(
-            races.map(async (race) => {
-                const { raceId, order } = race;
-                try {
-                    return await addRaceToLeague(baseLeague.id, raceId, order);
-                } catch (error) {
-                    console.error(`Error al añadir carrera: RaceID=${raceId}, Order=${order}`, error);
-                    return null
-                }
-            })
-        )
-
-        const newLeague: LeagueResponse = {
-            ...baseLeague,
-            participants: addedParticipants.filter(Boolean) as LeagueParticipant[],
-            races: addedRaces.filter(Boolean) as LeagueRace[],
-        }
 
         return Response.json({ success: true, league: newLeague });
     } catch (error) {

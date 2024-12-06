@@ -8,7 +8,6 @@ export enum LeagueType {
 
 export type LeagueParticipant = {
     id: number;
-    leagueId: number;
     runnerId: number;
     bibNumber: number;
     disqualified_at_race_order: number;
@@ -16,7 +15,6 @@ export type LeagueParticipant = {
 
 export type LeagueRace = {
     id: number;
-    leagueId: number;
     raceId: number;
     order: number;
 }

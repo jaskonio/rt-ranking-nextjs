@@ -9,7 +9,7 @@ export default function NewRacePage() {
         name: '',
         startDate: '',
         endDate: '',
-        scoringMethodId: '0',
+        scoringMethodId: 0,
         participants: [],
         races: [],
         photoUrl: '',
@@ -23,7 +23,7 @@ export default function NewRacePage() {
         formData.append("name", payload.name);
         formData.append("startDate", payload.startDate);
         formData.append("endDate", payload.endDate);
-        formData.append("scoringMethodId", payload.scoringMethodId);
+        formData.append("scoringMethodId", payload.scoringMethodId.toString());
         formData.append("visible", String(payload.visible));
         formData.append("type", payload.type);
 

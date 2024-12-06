@@ -27,25 +27,12 @@ export default function Page() {
         name: league.name,
         startDate: league.startDate,
         endDate: league.endDate,
-        scoringMethodId: league.scoringMethodId.toString(),
+        scoringMethodId: league.scoringMethodId,
         photoUrl: league.photoUrl,
         visible: league.visible,
         type: league.type,
-        participants: league.participants.map((p) => {
-            return {
-                id: p.id,
-                runnerId: p.runnerId,
-                bibNumber: p.bibNumber,
-                disqualified_at_race_order: p.disqualified_at_race_order
-            }
-        }),
-        races: league.races.map((r) => {
-            return {
-                id: r.id,
-                raceId: r.raceId,
-                order: r.order
-            }
-        }),
+        participants: league.participants,
+        races: league.races
     }
 
     const onSubmitRequest = async (payload: LeagueFormSchematType) => {
@@ -56,50 +43,24 @@ export default function Page() {
         formData.append("name", payload.name);
         formData.append("startDate", payload.startDate);
         formData.append("endDate", payload.endDate);
-        formData.append("scoringMethodId", payload.scoringMethodId);
+        formData.append("scoringMethodId", payload.scoringMethodId.toString());
         formData.append("visible", String(payload.visible));
 
         const imageBlob = await fetch(payload.photoUrl).then((res) => res.blob());
         const imageFile = new File([imageBlob], "banner.jpg", { type: imageBlob.type });
-        formData.append("imageContent", imageFile);
+        formData.append("photo", imageFile);
 
-        const leagueId = id
+        formData.append("participants", JSON.stringify(payload.participants));
+        formData.append("races", JSON.stringify(payload.races));
 
-        const newLeagueResponse = await fetch(`/api/leagues/${leagueId}`, {
+        const newLeagueResponse = await fetch(`/api/leagues/${id}`, {
             method: "PUT",
             body: formData,
         });
 
         const newLeagueJsonResponse: LeagueResponse = await newLeagueResponse.json()
-        if (!newLeagueJsonResponse.success) throw new Error("Error al crear la nueva Liga")
-
-
-        // set participants
-        const participantsResponse = await fetch(`/api/leagues/${leagueId}/participants`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(payload.participants),
-        });
-
-        const participantsJsonResponse: LeagueSetParticipantResponse = await participantsResponse.json()
-        if (!participantsJsonResponse.success) throw new Error("Error al asignar los nuevos participantes")
-
-        // set races
-        const racesResponse = await fetch(`/api/leagues/${leagueId}/races`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(payload.races),
-        });
-
-        const racesJsonResponse: LeagueSetRacesResponse = await racesResponse.json()
-        if (!racesJsonResponse.success) throw new Error("Error al asignar las nuevas carreras")
+        if (!newLeagueJsonResponse.success) throw new Error("Error al editar la Liga")
     }
-
-    console.log(defaultValues)
 
     return (
         <div className="max-w-4xl mx-auto">

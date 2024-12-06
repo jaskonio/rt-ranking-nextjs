@@ -25,37 +25,37 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { useEffect, useState } from "react";
-import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
-import { Badge } from "@/components/ui/badge";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { Check, ChevronsUpDown } from "lucide-react";
-import { ScoringMethodDetail } from "@/type/scoring-method";
 import { Races } from "@/type/race";
 import { RunnerDetail } from "@/type/runner";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CreateLeagueSkeleton } from "@/components/create-league-skeleton";
-import { LeagueType } from "@/type/league";
+import { LeagueParticipant, LeagueRace, LeagueType } from "@/type/league";
+import { ScoringMethod } from "@/type/scoring-method";
+import SelectParticipantTable from "@/components/league/select-participant-table";
+import SelectRaceTable from "@/components/league/select-race-table";
 
 
 const LeagueFormSchema = z.object({
     name: z.string().min(1, "League name is required"),
     startDate: z.string().min(1, "Start date is required"),
     endDate: z.string().min(1, "End date is required"),
-    scoringMethodId: z.string().min(1, "Scoring method is required"),
+    scoringMethodId: z.number(),
     photoUrl: z.string().min(1, "Foto is required"),
     visible: z.boolean(),
     type: z.string().min(1, "Foto is required"),
 
     participants: z.array(z.object({
-        id: z.number().optional(),
+        id: z.number(),
         runnerId: z.number(),
         bibNumber: z.number(),
-        disqualified_at_race_order: z.number().optional()
+        disqualified_at_race_order: z.number()
     })),
     races: z.array(z.object({
-        id: z.number().optional(),
+        id: z.number(),
         raceId: z.number(),
         order: z.number(),
     })),
@@ -72,17 +72,10 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
 
     const [errorMessage, setErrorMessage] = useState("");
 
-    const [scoringMethods, setScoringMethods] = useState<ScoringMethodDetail[] | null>(null)
+    const [scoringMethods, setScoringMethods] = useState<ScoringMethod[] | null>(null)
     const [availableRaces, setAvailableRaces] = useState<Races[] | null>(null)
     const [runners, setRunners] = useState<RunnerDetail[] | null>(null)
-    const [selectedParticipants, setSelectedParticipants] = useState<Array<{
-        id?: number,
-        runnerId: number,
-        name: string,
-        bibNumber: number,
-        photoUrl: string,
-        disqualified_at_race_order?: number
-    }>>([]);
+    const [selectedParticipants, setSelectedParticipants] = useState<LeagueParticipant[]>(defaultValues.participants);
     const [leagueType, setLeagueType] = useState(defaultValues.type)
 
     useEffect(() => {
@@ -109,45 +102,12 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
     }, [])
 
     const router = useRouter();
-    const [selectedRaces, setSelectedRaces] = useState<Array<{
-        id?: number,
-        raceId: number,
-        name: string,
-        order: number
-    }>>([]);
+    const [selectedRaces, setSelectedRaces] = useState<LeagueRace[]>(defaultValues.races);
 
     const [openRunner, setOpenRunner] = useState(false);
     const [openRace, setOpenRace] = useState(false);
 
     const [bannerPreview, setBannerPreview] = useState<string | null>(defaultValues.photoUrl || null);
-
-    useEffect(() => {
-        const searchDefaultSelectedRace = defaultValues.races.map((dr) => {
-            const race = availableRaces?.find(ar => ar.id == dr.raceId)
-
-            return {
-                ...dr,
-                name: race?.name ?? 'xxxxxxx'
-            }
-        })
-        setSelectedRaces(searchDefaultSelectedRace)
-    }, [availableRaces, defaultValues.races])
-
-    useEffect(() => {
-        const searchDefaultSelectedParticipant = defaultValues.participants.map((dp) => {
-            const participant = runners?.find(ar => ar.id == dp.runnerId)
-            const fullName = `${participant?.name}, ${participant?.surname}`
-            return {
-                id: dp.id,
-                runnerId: participant?.id ?? 0,
-                name: fullName ?? '',
-                bibNumber: dp.bibNumber,
-                photoUrl: participant?.photoUrl ?? '',
-                disqualified_at_race_order: dp.disqualified_at_race_order
-            }
-        })
-        setSelectedParticipants(searchDefaultSelectedParticipant)
-    }, [runners, defaultValues.participants])
 
     const form = useForm<LeagueFormSchematType>({
         resolver: zodResolver(LeagueFormSchema),
@@ -162,97 +122,51 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
         console.log('onSubmit')
         console.log(values)
 
-        values.participants = selectedParticipants
-        values.races = selectedRaces
-
         setIsLoading(true);
         try {
-            await onSubmitRequest(values)
+            await onSubmitRequest(values);
 
             router.push("/admin/leagues");
         } catch (error) {
             const message = error instanceof Error
-            console.error(message)
             setErrorMessage('Error al guardar');
         } finally {
             setIsLoading(false);
         }
     };
 
-    const handleRaceSelection = (raceId: Number) => {
-        const race = availableRaces.find(r => r.id === raceId);
-        const leagueRace = defaultValues.races.find(r => r.raceId == Number(raceId))
-        if (race && leagueRace) {
-            setSelectedRaces([...selectedRaces, {
-                id: leagueRace.id,
-                name: race.name,
-                order: selectedRaces.length + 1,
-                raceId: race.id
-            }]);
-        }
-
-        if (race && !leagueRace) {
-            setSelectedRaces([...selectedRaces, {
-                name: race.name,
-                order: selectedRaces.length + 1,
-                raceId: race.id
-            }]);
-        }
-    };
-
-    const handleDisqualifiedRaceSelection = (runnerId: number, raceId: string) => {
-        console.log(`runnerId: ${runnerId}. raceId: ${raceId}`)
-
-        const race = selectedRaces.find(r => r.raceId === parseInt(raceId))
-        const participant = selectedParticipants.find(p => p.runnerId == runnerId)
-        const selectedParticipantsWhioutCurrentParticipant = selectedParticipants.filter(p => p.runnerId != runnerId)
-        if (participant) {
-            participant.disqualified_at_race_order = race?.order ?? undefined
-            setSelectedParticipants([...selectedParticipantsWhioutCurrentParticipant.sort(), participant]);
-        }
-    };
-
-    const handleDragEnd = (result: DropResult) => {
-        if (!result.destination) return;
-
-        const items = Array.from(selectedRaces);
-        const [reorderedItem] = items.splice(result.source.index, 1);
-        items.splice(result.destination.index, 0, reorderedItem);
-
-        const reorderedItems = items.map((item, index) => ({
-            ...item,
-            order: index + 1,
-        }));
-
-        setSelectedRaces(reorderedItems);
+    const handleParticipationsChange = (participations: LeagueParticipant[]) => {
+        form.setValue('participants', participations);
+        setSelectedParticipants(participations)
     };
 
     const handleParticipantAdd = (runnerId: number) => {
-        const runner = runners.find(r => r.id === runnerId);
-
-        if (runner) {
-            setSelectedParticipants([
-                ...selectedParticipants,
-                {
-                    runnerId: runnerId,
-                    name: `${runner.name}, ${runner.surname}`,
-                    bibNumber: 0,
-                    photoUrl: runner.photoUrl || ''
-                },
-            ]);
-        }
+        setSelectedParticipants([
+            ...selectedParticipants,
+            {
+                id: selectedParticipants.length + 9999,
+                runnerId: runnerId,
+                bibNumber: 0,
+                disqualified_at_race_order: 9999
+            },
+        ]);
 
         setOpenRunner(false);
     };
 
-    const handleBibNumberChange = (runnerId: number, newBibNumber: string) => {
-        setSelectedParticipants(
-            selectedParticipants.map(p =>
-                p.runnerId === runnerId
-                    ? { ...p, bibNumber: Number(newBibNumber) }
-                    : p
-            )
-        );
+    const handleSelecteRacesChange = (races: LeagueRace[]) => {
+        form.setValue('races', races);
+        setSelectedRaces(races)
+        console.log(form.getValues())
+    };
+
+    const handleSelectRaceAdd = (raceId: number) => {
+        setSelectedRaces([...selectedRaces, {
+            id: selectedRaces.length + 9999,
+            order: selectedRaces.length + 1,
+            raceId: raceId
+        }]);
+        setOpenRace(false)
     };
 
     const handleBannerUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -271,20 +185,6 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
         setBannerPreview(null);
         const input = document.getElementById('bannerImage') as HTMLInputElement;
         if (input) input.value = '';
-    };
-
-    const calculateDefaultValue = (
-        participant: { disqualified_at_race_order?: number },
-        selectedRaces: { raceId: number }[]
-    ): string => {
-        const raceOrder = participant.disqualified_at_race_order ?? 0;
-
-        if (raceOrder === 0 || raceOrder === 9999) {
-            return ''; // No descalificación
-        }
-
-        const selectedRace = selectedRaces[raceOrder - 1];
-        return selectedRace?.raceId.toString() || ''; // Devuelve el raceId si existe, o cadena vacía si no
     };
 
     return (
@@ -405,7 +305,10 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel className="text-white">Regla de puntuación</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <Select
+                                    onValueChange={(val) => field.onChange(Number(val))}
+                                    defaultValue={field.value.toString()}
+                                >
                                     <FormControl>
                                         <div className="relative">
                                             <Calculator className="absolute left-3 top-3 h-5 w-5 text-gray-400 z-10" />
@@ -555,76 +458,13 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
 
                         {selectedParticipants.length > 0 && (
                             <div className="rounded-lg p-4 space-y-2">
-                                {selectedParticipants.sort().map((participant, index) => (
-                                    <div
-                                        key={index}
-                                        className="flex flex-col justify-between bg-gray-800/50 rounded-lg p-3"
-                                    >
-                                        <div className="flex flex-row items-center pb-4">
-                                            <div className="relative ml-2 w-10 h-10 rounded-full overflow-hidden ring-2 ring-white/20 ">
-                                                {/* <Image
-                                                    src={participant.photoUrl}
-                                                    alt={participant.name}
-                                                    fill
-                                                    className="object-cover"
-                                                /> */}
-                                            </div>
-                                            <span className="text-white align-middle pl-4">{participant.name}</span>
-                                        </div>
-                                        <div className="flex flex-row pb-4">
-                                            <div className="basis-1/4">
-                                                <span className="text-gray-400">Dorsal </span>
-                                                <Input
-                                                    type="number"
-                                                    value={participant.bibNumber}
-                                                    onChange={(e) => handleBibNumberChange(participant.runnerId, e.target.value)}
-                                                    className="w-24 bg-gray-700/50 border-gray-600 text-white"
-                                                    min="0"
-                                                />
-                                            </div>
-
-                                            <div className="basis-1/4">
-                                                <span className="text-gray-400">Descalificar desde la carrera </span>
-                                                <Select
-                                                    onValueChange={(raceId) => handleDisqualifiedRaceSelection(participant.runnerId, raceId)}
-                                                    defaultValue={calculateDefaultValue(participant, selectedRaces)}
-                                                >
-                                                    <div className="relative">
-                                                        <Flag className="absolute left-3 top-3 h-5 w-5 text-gray-400 z-10" />
-                                                        <SelectTrigger className="bg-gray-700/50 border-gray-600 text-white pl-10">
-                                                            <SelectValue placeholder="Selecciona una carrera" />
-                                                        </SelectTrigger>
-                                                    </div>
-                                                    <SelectContent className="bg-gray-800 border-gray-700">
-                                                        {selectedRaces.map((race) => (
-                                                            <SelectItem
-                                                                key={race.raceId}
-                                                                value={race.raceId.toString()}
-                                                                className="text-white hover:bg-gray-700"
-                                                            >
-                                                                <div className="flex justify-between items-center w-full">
-                                                                    <span>{race.name} - {race.order}</span>
-                                                                </div>
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
-                                        </div>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => {
-                                                setSelectedParticipants(
-                                                    selectedParticipants.filter(p => p.runnerId !== participant.runnerId)
-                                                );
-                                            }}
-                                            className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                                        >
-                                            Remove
-                                        </Button>
-                                    </div>
-                                ))}
+                                <SelectParticipantTable
+                                    runners={runners}
+                                    availableRaces={availableRaces}
+                                    races={selectedRaces}
+                                    participants={selectedParticipants}
+                                    onChange={handleParticipationsChange}
+                                />
                             </div>
                         )}
                     </div>
@@ -658,7 +498,7 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
                                         {availableRaces.map((race, index) => (
                                             <CommandItem
                                                 key={index}
-                                                onSelect={() => handleRaceSelection(race.id)}
+                                                onSelect={() => handleSelectRaceAdd(race.id)}
                                                 className=" hover:bg-gray-700"
                                             >
                                                 <Check
@@ -679,58 +519,11 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
                     </Popover>
 
                     {selectedRaces.length > 0 && (
-                        <DragDropContext onDragEnd={handleDragEnd}>
-                            <Droppable droppableId="races">
-                                {(provided) => (
-                                    <div
-                                        {...provided.droppableProps}
-                                        ref={provided.innerRef}
-                                        className="space-y-2"
-                                    >
-                                        {selectedRaces.map((race, index) => (
-                                            <Draggable
-                                                key={race.raceId}
-                                                draggableId={race.raceId.toString()}
-                                                index={index}
-                                            >
-                                                {(provided) => (
-                                                    <div
-                                                        ref={provided.innerRef}
-                                                        {...provided.draggableProps}
-                                                        {...provided.dragHandleProps}
-                                                        className="flex items-center justify-between bg-gray-800/50 rounded-lg p-3"
-                                                    >
-                                                        <div className="flex items-center gap-3">
-                                                            <Badge className="bg-blue-500/20 text-blue-300">
-                                                                Carrera {index + 1}
-                                                            </Badge>
-                                                            <span className="text-white">{race.name}</span>
-                                                            {/* <span className="text-gray-400">
-                                                                {new Date(race.).toLocaleDateString()}
-                                                            </span> */}
-                                                        </div>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            onClick={() => {
-                                                                setSelectedRaces(
-                                                                    selectedRaces.filter(r => r.raceId !== race.raceId)
-                                                                        .map((r, i) => ({ ...r, order: i + 1 }))
-                                                                );
-                                                            }}
-                                                            className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                                                        >
-                                                            Remove
-                                                        </Button>
-                                                    </div>
-                                                )}
-                                            </Draggable>
-                                        ))}
-                                        {provided.placeholder}
-                                    </div>
-                                )}
-                            </Droppable>
-                        </DragDropContext>
+                        <SelectRaceTable
+                            availableRaces={availableRaces}
+                            races={selectedRaces}
+                            onChange={handleSelecteRacesChange}
+                        />
                     )}
                 </div>
 

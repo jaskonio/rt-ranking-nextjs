@@ -1,5 +1,6 @@
 import { saveBannerContent } from "@/services/awsService";
 import { getLeagueById, updateLeague } from "@/services/leagueService";
+import { LeagueParticipant, LeagueRace, LeagueType } from "@/type/league";
 
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -27,21 +28,39 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
     const formData = await request.formData();
     const name = formData.get("name") as string;
-    const startDateString = formData.get("startDate") as string;
-    const endDateString = formData.get("endDate") as string;
+    const startDate = formData.get("startDate") as string;
+    const endDate = formData.get("endDate") as string;
     const scoringMethodId = formData.get("scoringMethodId") as string;
-    // const bannerFile = formData.get("imageContent") as File;
+    const bannerFile = formData.get("photo") as File;
+    const visible = formData.get("visible") as string;
+    const type = formData.get("type") as LeagueType;
+    const participantsJsonString = formData.get("participants") as string;
+    const racesJsonString = formData.get("races") as string;
+
+    const participants = JSON.parse(participantsJsonString) as LeagueParticipant[]
+    const races = JSON.parse(racesJsonString) as LeagueRace[]
 
     // Validar los datos
     // Normalización de los datos
-    const startDate = startDateString ? new Date(startDateString) : undefined
-    const endDate = endDateString ? new Date(endDateString) : undefined
+    const normalizedStartDate = new Date(startDate)
+    const normalizedEndDate = new Date(endDate)
 
     try {
         const bannerFileUrl = await saveBannerContent();
 
-        const newLeague = await updateLeague(id, { name, startDate, endDate, scoringMethodId: parseInt(scoringMethodId), photoUrl: bannerFileUrl })
-        return Response.json({ success: true, league: newLeague });
+        const updatedLeague = await updateLeague(id, {
+            name,
+            startDate: normalizedStartDate,
+            endDate: normalizedEndDate,
+            visible: Boolean(visible),
+            type,
+
+            scoringMethodId: parseInt(scoringMethodId),
+            photoUrl: bannerFileUrl,
+            participants: participants,
+            races: races,
+        })
+        return Response.json({ success: true, league: updatedLeague });
     } catch (error) {
         console.error("Ocurrió un error:", error);
         return Response.json({ success: false, error: 'Error al actualizar la Liga' }, { status: 500 });

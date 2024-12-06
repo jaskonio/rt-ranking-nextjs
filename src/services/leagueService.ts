@@ -4,7 +4,7 @@ import { LeagueHistoryRanking, LeagueType } from "@/type/league";
 import { RunnerLeagueDetail } from "@/type/runner";
 import { LeagueParticipant, LeagueRanking, RunnerParticipation, ScoringMethod } from "@prisma/client";
 
-type LeagueProp = {
+type LeagueDTO = {
     name: string;
     startDate: Date;
     endDate: Date;
@@ -12,18 +12,72 @@ type LeagueProp = {
     photoUrl: string;
     visible: boolean;
     type: LeagueType;
+    participants: LeagueParticipantDTO[];
+    races: LeagueRaceDTO[];
 }
 
-export const createLeague = async (data: LeagueProp) => {
+type LeagueParticipantDTO = {
+    runnerId: number;
+    bibNumber: number;
+    disqualified_at_race_order: number;
+}
+
+type LeagueRaceDTO = {
+    raceId: number;
+    order: number;
+}
+
+export const createLeague = async (data: LeagueDTO) => {
+    const { name, startDate, endDate, scoringMethodId, photoUrl, visible, type, participants, races } = data
     return await prisma.league.create({
-        data: data
+        data: {
+            name,
+            startDate,
+            endDate,
+            scoringMethodId,
+            photoUrl,
+            visible,
+            type,
+            participants: {
+                create: participants
+            },
+            races: {
+                create: races
+            }
+        }
     });
 }
 
-export const updateLeague = async (id: number, data: Partial<LeagueProp>) => {
+export const updateLeague = async (id: number, data: Partial<LeagueDTO>) => {
+    const { name, startDate, endDate, scoringMethodId, photoUrl, visible, type, participants, races } = data
+
     return await prisma.league.update({
         where: { id },
-        data,
+        data: {
+            ...(name && { name }),
+            ...(startDate && { startDate }),
+            ...(endDate && { endDate }),
+            ...(scoringMethodId && { scoringMethodId }),
+            ...(photoUrl && { photoUrl }),
+            ...(visible && { visible }),
+            ...(type && { type }),
+            ...(participants && {
+                participants: {
+                    deleteMany: {},
+                    create: participants
+                }
+            }),
+            ...(races && {
+                races: {
+                    deleteMany: {},
+                    create: races
+                }
+            }),
+        },
+        include: {
+            participants: true,
+            races: true
+        }
     });
 }
 
@@ -50,49 +104,7 @@ export const getAllLeagues = async () => {
     });
 }
 
-export const addParticipant = async (leagueId: number, runnerId: number, bibNumber: number, order?: number) => {
-    return await prisma.leagueParticipant.create({
-        data: {
-            leagueId,
-            runnerId,
-            bibNumber,
-            disqualified_at_race_order: order
-        },
-    });
-}
-
-export const updateParticipant = async (participantId: number, data: Partial<{ runnerId: number, bibNumber: number, disqualified_at_race_order: number }>) => {
-    return await prisma.leagueParticipant.update({
-        where: { id: participantId },
-        data,
-    });
-}
-
-export const deleteParticipant = async (participantId: number) => {
-    await prisma.leagueParticipant.delete({ where: { id: participantId } });
-}
-
-export const addRaceToLeague = async (leagueId: number, raceId: number, order: number) => {
-    return await prisma.leagueRace.create({
-        data: {
-            leagueId,
-            raceId,
-            order
-        },
-    });
-}
-
-export const updateLeagueRace = async (leagueRaceId: number, data: Partial<{ leagueId: number, raceId: number, order: number }>) => {
-    return await prisma.leagueRace.update({
-        where: { id: leagueRaceId },
-        data
-    });
-}
-
-export const removeRaceFromLeague = async (leagueRaceId: number) => {
-    await prisma.leagueRace.delete({ where: { id: leagueRaceId } });
-}
-
+// Calcular el ranking de una carrera
 export const generateLeagueRanking = async (leagueId: number) => {
     // Obtener datos necesarios
     const league = await prisma.league.findUnique({
@@ -210,7 +222,6 @@ export const generateLeagueRanking = async (leagueId: number) => {
     return { raceRankings: rankings, globalRankings: globalRankingsArray };
 }
 
-// Calcular el ranking de una carrera
 const calculateRaceRanking = async (participations: RunnerParticipation[], participants: LeagueParticipant[], scoringMethod: ScoringMethod) => {
     // Filtrar solo los corredores de la liga
     const leagueParticipants = participants.reduce((map, p) => {
