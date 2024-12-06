@@ -95,7 +95,7 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
                 ]);
 
                 setScoringMethods(scoringMethodsResponse.scoringMethods || []);
-                setAvailableRaces(racesResponse.races || []);
+                setAvailableRaces(racesResponse.races.reverse() || []);
                 setRunners(runnersResponse.runners || []);
             } catch (error) {
                 console.error("Error al cargar los datos:", error);
@@ -117,6 +117,7 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
     }>>([]);
 
     const [openRunner, setOpenRunner] = useState(false);
+    const [openRace, setOpenRace] = useState(false);
 
     const [bannerPreview, setBannerPreview] = useState<string | null>(defaultValues.photoUrl || null);
 
@@ -178,8 +179,8 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
         }
     };
 
-    const handleRaceSelection = (raceId: string) => {
-        const race = availableRaces.find(r => r.id.toString() === raceId);
+    const handleRaceSelection = (raceId: Number) => {
+        const race = availableRaces.find(r => r.id === raceId);
         const leagueRace = defaultValues.races.find(r => r.raceId == Number(raceId))
         if (race && leagueRace) {
             setSelectedRaces([...selectedRaces, {
@@ -636,33 +637,46 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
                         Carreras disponibles
                     </h3>
 
-                    <Select onValueChange={handleRaceSelection}>
-                        <FormControl>
-                            <div className="relative">
-                                <Flag className="absolute left-3 top-3 h-5 w-5 text-gray-400 z-10" />
-                                <SelectTrigger className="bg-gray-700/50 border-gray-600 text-white pl-10">
-                                    <SelectValue placeholder="Add races to the league" />
-                                </SelectTrigger>
-                            </div>
-                        </FormControl>
-                        <SelectContent className="bg-gray-800 border-gray-700">
-                            {availableRaces.map((race) => (
-                                <SelectItem
-                                    key={race.id}
-                                    value={race.id.toString()}
-                                    className="text-white hover:bg-gray-700"
-                                    disabled={selectedRaces.some(r => r.raceId === race.id)}
-                                >
-                                    <div className="flex justify-between items-center w-full">
-                                        <span>{race.name}</span>
-                                        <span className="text-sm text-gray-400">
-                                            - {new Date(race.date).toLocaleDateString()}
-                                        </span>
-                                    </div>
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    <Popover open={openRace} onOpenChange={setOpenRace}>
+                        <PopoverTrigger asChild>
+                            <Button
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={openRace}
+                                className="w-full justify-between bg-gray-700/50 border-gray-600 text-white hover:bg-gray-600"
+                            >
+                                Selecciona las Carreras...
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-full p-0  border-gray-700">
+                            <Command>
+                                <CommandInput placeholder="Buscar runners..." />
+                                <CommandList>
+                                    <CommandEmpty>No hay carreras.</CommandEmpty>
+                                    <CommandGroup heading="Carreras">
+                                        {availableRaces.map((race, index) => (
+                                            <CommandItem
+                                                key={index}
+                                                onSelect={() => handleRaceSelection(race.id)}
+                                                className=" hover:bg-gray-700"
+                                            >
+                                                <Check
+                                                    className={cn(
+                                                        "mr-2 h-4 w-4",
+                                                        selectedRaces.some(p => p.raceId === race.id)
+                                                            ? "opacity-100"
+                                                            : "opacity-0"
+                                                    )}
+                                                />
+                                                {race.name} - {race.date}
+                                            </CommandItem>
+                                        ))}
+                                    </CommandGroup>
+                                </CommandList>
+                            </Command>
+                        </PopoverContent>
+                    </Popover>
 
                     {selectedRaces.length > 0 && (
                         <DragDropContext onDragEnd={handleDragEnd}>
@@ -730,9 +744,11 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
                         {isLoading ? "Guardando..." : "Guardar"}
                     </Button>
                 </div>
-                {errorMessage && (
-                    <p className="text-red-500 text-sm mt-2">{errorMessage}</p>
-                )}
+                {
+                    errorMessage && (
+                        <p className="text-red-500 text-sm mt-2">{errorMessage}</p>
+                    )
+                }
             </form>
         </Form>
     );
