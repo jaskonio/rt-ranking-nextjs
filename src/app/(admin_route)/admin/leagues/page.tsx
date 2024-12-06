@@ -7,20 +7,33 @@ import LeagueList from "./league-list"
 
 
 export default function Page() {
-    const [leagues, setLeague] = useState(null)
+    const [leagues, setLeague] = useState([])
     const [isLoading, setLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         fetch(`/api/leagues`)
             .then((res) => res.json())
             .then((leagues) => {
-                setLeague(leagues)
+                if (leagues.success) {
+                    setLeague(leagues.leagues || []);
+                } else {
+                    setError(leagues.error || "Error desconocido al obtener las ligas");
+                }
                 setLoading(false)
             })
     }, [])
 
     if (isLoading) return <header>Loading...</header>
-    if (!leagues) return <p>No hay ligas registradas</p>
+    if (error) {
+        return (
+            <div className="max-w-4xl mx-auto text-center mt-16">
+                <h1 className="text-3xl font-bold text-red-500">Error</h1>
+                <p className="text-lg text-white mt-4">{error}</p>
+            </div>
+        );
+    }
+    if (!leagues || leagues.length === 0) return <p>No hay ligas registradas</p>
 
     return (
         <div className="max-w-4xl mx-auto">
@@ -38,7 +51,7 @@ export default function Page() {
                 </Link>
             </header>
 
-            <LeagueList data={leagues['leagues']}></LeagueList>
+            <LeagueList data={leagues}></LeagueList>
         </div >
     );
 }

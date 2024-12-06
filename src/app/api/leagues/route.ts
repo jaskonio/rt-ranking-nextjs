@@ -69,7 +69,7 @@ export async function POST(request: Request) {
             participants.map(async (participant) => {
                 const { runnerId, bibNumber } = participant;
                 try {
-                    return await addParticipant(newLeague.id, runnerId, bibNumber);
+                    return await addParticipant(baseLeague.id, runnerId, bibNumber);
                 } catch (error) {
                     console.error(`Error al añadir participante: RunnerID=${runnerId}, BibNumber=${bibNumber}`, error);
                     return null;
@@ -83,7 +83,7 @@ export async function POST(request: Request) {
             races.map(async (race) => {
                 const { raceId, order } = race;
                 try {
-                    return await addRaceToLeague(newLeague.id, raceId, order);
+                    return await addRaceToLeague(baseLeague.id, raceId, order);
                 } catch (error) {
                     console.error(`Error al añadir carrera: RaceID=${raceId}, Order=${order}`, error);
                     return null

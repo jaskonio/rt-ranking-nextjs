@@ -83,6 +83,7 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
         photoUrl: string,
         disqualified_at_race_order?: number
     }>>([]);
+    const [leagueType, setLeagueType] = useState(defaultValues.type)
 
     useEffect(() => {
         const fetchData = async () => {
@@ -285,7 +286,6 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
         return selectedRace?.raceId.toString() || ''; // Devuelve el raceId si existe, o cadena vacía si no
     };
 
-
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -439,7 +439,12 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel className="text-white">Tipo de Liga</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <Select
+                                    onValueChange={(value) => {
+                                        field.onChange(value)
+                                        setLeagueType(value)
+                                    }}
+                                    defaultValue={field.value}>
                                     <FormControl>
                                         <div className="relative">
                                             <Calculator className="absolute left-3 top-3 h-5 w-5 text-gray-400 z-10" />
@@ -488,138 +493,141 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
                 </div>
 
                 {/* Participants Section */}
-                <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                        <Users className="h-5 w-5" />
-                        Participantes
-                    </h3>
+                {
+                    leagueType == LeagueType.CIRCUITO &&
+                    <div className="space-y-4">
+                        <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                            <Users className="h-5 w-5" />
+                            Participantes
+                        </h3>
 
-                    <Popover open={openRunner} onOpenChange={setOpenRunner}>
-                        <PopoverTrigger asChild>
-                            <Button
-                                variant="outline"
-                                role="combobox"
-                                aria-expanded={openRunner}
-                                className="w-full justify-between bg-gray-700/50 border-gray-600 text-white hover:bg-gray-600"
-                            >
-                                Selecciona participantes...
-                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-full p-0  border-gray-700">
-                            <Command>
-                                <CommandInput placeholder="Buscar runners..." />
-                                <CommandList>
-                                    <CommandEmpty>No runner found.</CommandEmpty>
-                                    <CommandGroup heading="Runners">
-                                        {runners.map((runner, index) => (
-                                            <CommandItem
-                                                key={index}
-                                                onSelect={() => handleParticipantAdd(runner.id)}
-                                                className=" hover:bg-gray-700"
-                                            >
-                                                <Check
-                                                    className={cn(
-                                                        "mr-2 h-4 w-4",
-                                                        selectedParticipants.some(p => p.runnerId === runner.id)
-                                                            ? "opacity-100"
-                                                            : "opacity-0"
-                                                    )}
-                                                />
-                                                {runner.name} {runner.surname}
-                                                <div className="flex-shrink-0 group">
-                                                    <div className="relative ml-2 w-10 h-10 rounded-full overflow-hidden ring-2 ring-white/20 ">
-                                                        <Image
-                                                            src={runner.photoUrl || ''}
-                                                            alt={runner.name}
-                                                            fill
-                                                            className="object-cover"
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </CommandItem>
-                                        ))}
-                                    </CommandGroup>
-                                </CommandList>
-                            </Command>
-                        </PopoverContent>
-                    </Popover>
-
-                    {selectedParticipants.length > 0 && (
-                        <div className="rounded-lg p-4 space-y-2">
-                            {selectedParticipants.sort().map((participant, index) => (
-                                <div
-                                    key={index}
-                                    className="flex flex-col justify-between bg-gray-800/50 rounded-lg p-3"
+                        <Popover open={openRunner} onOpenChange={setOpenRunner}>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    role="combobox"
+                                    aria-expanded={openRunner}
+                                    className="w-full justify-between bg-gray-700/50 border-gray-600 text-white hover:bg-gray-600"
                                 >
-                                    <div className="flex flex-row items-center pb-4">
-                                        <div className="relative ml-2 w-10 h-10 rounded-full overflow-hidden ring-2 ring-white/20 ">
-                                            {/* <Image
+                                    Selecciona participantes...
+                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-full p-0  border-gray-700">
+                                <Command>
+                                    <CommandInput placeholder="Buscar runners..." />
+                                    <CommandList>
+                                        <CommandEmpty>No runner found.</CommandEmpty>
+                                        <CommandGroup heading="Runners">
+                                            {runners.map((runner, index) => (
+                                                <CommandItem
+                                                    key={index}
+                                                    onSelect={() => handleParticipantAdd(runner.id)}
+                                                    className=" hover:bg-gray-700"
+                                                >
+                                                    <Check
+                                                        className={cn(
+                                                            "mr-2 h-4 w-4",
+                                                            selectedParticipants.some(p => p.runnerId === runner.id)
+                                                                ? "opacity-100"
+                                                                : "opacity-0"
+                                                        )}
+                                                    />
+                                                    {runner.name} {runner.surname}
+                                                    <div className="flex-shrink-0 group">
+                                                        <div className="relative ml-2 w-10 h-10 rounded-full overflow-hidden ring-2 ring-white/20 ">
+                                                            <Image
+                                                                src={runner.photoUrl || ''}
+                                                                alt={runner.name}
+                                                                fill
+                                                                className="object-cover"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </CommandItem>
+                                            ))}
+                                        </CommandGroup>
+                                    </CommandList>
+                                </Command>
+                            </PopoverContent>
+                        </Popover>
+
+                        {selectedParticipants.length > 0 && (
+                            <div className="rounded-lg p-4 space-y-2">
+                                {selectedParticipants.sort().map((participant, index) => (
+                                    <div
+                                        key={index}
+                                        className="flex flex-col justify-between bg-gray-800/50 rounded-lg p-3"
+                                    >
+                                        <div className="flex flex-row items-center pb-4">
+                                            <div className="relative ml-2 w-10 h-10 rounded-full overflow-hidden ring-2 ring-white/20 ">
+                                                {/* <Image
                                                     src={participant.photoUrl}
                                                     alt={participant.name}
                                                     fill
                                                     className="object-cover"
                                                 /> */}
+                                            </div>
+                                            <span className="text-white align-middle pl-4">{participant.name}</span>
                                         </div>
-                                        <span className="text-white align-middle pl-4">{participant.name}</span>
-                                    </div>
-                                    <div className="flex flex-row pb-4">
-                                        <div className="basis-1/4">
-                                            <span className="text-gray-400">Dorsal </span>
-                                            <Input
-                                                type="number"
-                                                value={participant.bibNumber}
-                                                onChange={(e) => handleBibNumberChange(participant.runnerId, e.target.value)}
-                                                className="w-24 bg-gray-700/50 border-gray-600 text-white"
-                                                min="0"
-                                            />
-                                        </div>
+                                        <div className="flex flex-row pb-4">
+                                            <div className="basis-1/4">
+                                                <span className="text-gray-400">Dorsal </span>
+                                                <Input
+                                                    type="number"
+                                                    value={participant.bibNumber}
+                                                    onChange={(e) => handleBibNumberChange(participant.runnerId, e.target.value)}
+                                                    className="w-24 bg-gray-700/50 border-gray-600 text-white"
+                                                    min="0"
+                                                />
+                                            </div>
 
-                                        <div className="basis-1/4">
-                                            <span className="text-gray-400">Descalificar desde la carrera </span>
-                                            <Select
-                                                onValueChange={(raceId) => handleDisqualifiedRaceSelection(participant.runnerId, raceId)}
-                                                defaultValue={calculateDefaultValue(participant, selectedRaces)}
-                                            >
-                                                <div className="relative">
-                                                    <Flag className="absolute left-3 top-3 h-5 w-5 text-gray-400 z-10" />
-                                                    <SelectTrigger className="bg-gray-700/50 border-gray-600 text-white pl-10">
-                                                        <SelectValue placeholder="Selecciona una carrera" />
-                                                    </SelectTrigger>
-                                                </div>
-                                                <SelectContent className="bg-gray-800 border-gray-700">
-                                                    {selectedRaces.map((race) => (
-                                                        <SelectItem
-                                                            key={race.raceId}
-                                                            value={race.raceId.toString()}
-                                                            className="text-white hover:bg-gray-700"
-                                                        >
-                                                            <div className="flex justify-between items-center w-full">
-                                                                <span>{race.name} - {race.order}</span>
-                                                            </div>
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
+                                            <div className="basis-1/4">
+                                                <span className="text-gray-400">Descalificar desde la carrera </span>
+                                                <Select
+                                                    onValueChange={(raceId) => handleDisqualifiedRaceSelection(participant.runnerId, raceId)}
+                                                    defaultValue={calculateDefaultValue(participant, selectedRaces)}
+                                                >
+                                                    <div className="relative">
+                                                        <Flag className="absolute left-3 top-3 h-5 w-5 text-gray-400 z-10" />
+                                                        <SelectTrigger className="bg-gray-700/50 border-gray-600 text-white pl-10">
+                                                            <SelectValue placeholder="Selecciona una carrera" />
+                                                        </SelectTrigger>
+                                                    </div>
+                                                    <SelectContent className="bg-gray-800 border-gray-700">
+                                                        {selectedRaces.map((race) => (
+                                                            <SelectItem
+                                                                key={race.raceId}
+                                                                value={race.raceId.toString()}
+                                                                className="text-white hover:bg-gray-700"
+                                                            >
+                                                                <div className="flex justify-between items-center w-full">
+                                                                    <span>{race.name} - {race.order}</span>
+                                                                </div>
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
                                         </div>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => {
+                                                setSelectedParticipants(
+                                                    selectedParticipants.filter(p => p.runnerId !== participant.runnerId)
+                                                );
+                                            }}
+                                            className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                        >
+                                            Remove
+                                        </Button>
                                     </div>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => {
-                                            setSelectedParticipants(
-                                                selectedParticipants.filter(p => p.runnerId !== participant.runnerId)
-                                            );
-                                        }}
-                                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                                    >
-                                        Remove
-                                    </Button>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                }
 
                 {/* Races Section */}
                 <div className="space-y-4">
