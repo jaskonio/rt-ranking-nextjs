@@ -39,7 +39,7 @@ export default function RunnerParticipationTable({ runners, values, onChange }: 
     const [runnerSelectItems, setRunnerSelectItems] = useState<RunnerSelectItems[]>(newRunnerSelectItems)
 
     const addParticipation = () => {
-        const newParticipationValue = INITIAL_PARTICIPATION
+        const newParticipationValue = { ...INITIAL_PARTICIPATION }
         newParticipationValue.id = participations.length + 1
         newParticipationValue.generalPosition = participations.length + 1
         newParticipationValue.categoryPosition = participations.length + 1

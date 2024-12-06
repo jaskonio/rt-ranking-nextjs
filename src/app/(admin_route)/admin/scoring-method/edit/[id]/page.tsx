@@ -1,21 +1,21 @@
 "use client"
 
 import { useEffect, useState } from "react";
-import ScoringMethodAdd from "../../scoring-method-form";
+import ScoringMethodAdd, { ScoringMethodFormSchema } from "../../scoring-method-form";
 import { useParams } from "next/navigation";
-import { ScoringMethodDetail, ScoringMethodFormPOST } from "@/type/scoring-method";
+import { ScoringMethod } from "@/type/scoring-method";
 
 
 export default function Page() {
     const { id } = useParams();
-    const [scoringMethod, setData] = useState<ScoringMethodDetail | null>(null)
+    const [scoringMethod, setData] = useState<ScoringMethod | null>(null)
     const [isLoading, setLoading] = useState(true)
 
     useEffect(() => {
         fetch(`/api/scoring-method/${id}`)
             .then((res) => res.json())
             .then((scoringMethods) => {
-                setData(scoringMethods)
+                setData(scoringMethods['scoringMethod'])
                 setLoading(false)
             })
     }, [id])
@@ -23,7 +23,7 @@ export default function Page() {
     if (isLoading) return <header>Loading...</header>
     if (!scoringMethod) return <p>No hay Método de Puntuación</p>
 
-    const onSubmitRequest = async (payload: ScoringMethodFormPOST) => {
+    const onSubmitRequest = async (payload: ScoringMethodFormSchema) => {
         const response = await fetch(`/api/scoring-method/${id}`, {
             method: "PUT",
             headers: {
@@ -32,11 +32,17 @@ export default function Page() {
             body: JSON.stringify(payload),
         });
 
-        const data: ScoringMethodDetail = await response.json()
+        const data = await response.json()
         return data
     }
 
-    scoringMethod.pointsDistribution = scoringMethod.pointsDistribution.toString()
+    const defaultValues: ScoringMethodFormSchema = {
+        name: scoringMethod.name,
+        description: scoringMethod.description,
+        modelType: scoringMethod.modelType,
+        pointsDistribution: scoringMethod.pointsDistribution.toString(),
+        sortingAttributes: scoringMethod.sortingAttributes
+    }
 
     return (
         <div className="max-w-2xl mx-auto">
@@ -49,7 +55,7 @@ export default function Page() {
                 </p>
             </div>
             <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-8 shadow-xl animate-slide-in">
-                <ScoringMethodAdd defaultValues={scoringMethod} onSubmitRequest={onSubmitRequest}></ScoringMethodAdd>
+                <ScoringMethodAdd defaultValues={defaultValues} onSubmitRequest={onSubmitRequest}></ScoringMethodAdd>
             </div>
         </div>
     );

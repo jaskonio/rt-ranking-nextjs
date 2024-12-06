@@ -1,23 +1,18 @@
 "use client"
 
-import { ScoringMethodDetail, ScoringMethodFormPOST } from "@/type/scoring-method";
-import ScoringMethodAdd, { AttributeNameToOrder, OrderValue } from "../scoring-method-form";
+import ScoringMethodAdd, { ScoringMethodFormSchema } from "../scoring-method-form";
 
 
 export default function Page() {
-    const defaultValues = {
+    const defaultValues: ScoringMethodFormSchema = {
         name: '',
         description: '',
-        formula: '',
-        primaryAttribute: AttributeNameToOrder[0],
-        primaryOrder: OrderValue[0],
-        secondaryAttribute: AttributeNameToOrder[0],
-        secondaryOrder: OrderValue[0],
-        tertiaryAttribute: AttributeNameToOrder[0],
-        tertiaryOrder: OrderValue[0],
+        modelType: 'CIRCUITO',
         pointsDistribution: '20,10,5,1',
+        sortingAttributes: []
     }
-    const onSubmitRequest = async (payload: ScoringMethodFormPOST) => {
+
+    const onSubmitRequest = async (payload: ScoringMethodFormSchema) => {
         const response = await fetch("/api/scoring-method", {
             method: "POST",
             headers: {
@@ -26,7 +21,7 @@ export default function Page() {
             body: JSON.stringify(payload),
         });
 
-        const data: ScoringMethodDetail = await response.json()
+        const data = await response.json()
         return data
     }
 

@@ -175,18 +175,32 @@ model LeagueRankingHistory {
 }
 
 model ScoringMethod {
-  id                 Int      @id @default(autoincrement())
+  id                 Int                @id @default(autoincrement())
   name               String
   description        String
-  formula            String
-  primaryAttribute   String
-  primaryOrder       String
-  secondaryAttribute String?
-  secondaryOrder     String?
-  tertiaryAttribute  String?
-  tertiaryOrder      String?
+  modelType          ModelType
   pointsDistribution Json
   leagues            League[]
+  sortingAttributes  SortingAttribute[]
+}
+
+model SortingAttribute {
+  id            Int           @id @default(autoincrement())
+  methodId      Int
+  attribute     String
+  order         SortOrder
+  priorityLevel Int // Nivel de prioridad (1 = primario, 2 = secundario, etc.)
+  method        ScoringMethod @relation(fields: [methodId], references: [id])
+}
+
+enum ModelType {
+  CIRCUITO
+  BASKET
+}
+
+enum SortOrder {
+  ASC
+  DESC
 }
 
 enum LeagueType {

@@ -1,19 +1,37 @@
-export type ScoringMethodDetail = {
+export const RunnerCircuitoKeys = [
+    "officialPosition",
+    "officialTime",
+    "officialPace",
+    "officialCategoryPosition",
+    "officialGenderPosition",
+    "realPosition",
+    "realTime",
+    "realPace",
+    "realCategoryPosition",
+    "realGenderPosition"
+]
+
+export const RunnerBasketKeys = [
+    "generalPosition",
+    "categoryPosition",
+    "localPosition",
+    "time",
+    "pace"
+]
+
+export type ScoringMethod = {
     id: number;
     name: string;
     description: string;
-    formula: string;
-    primaryAttribute: string;
-    primaryOrder: string;
-    secondaryAttribute: string;
-    secondaryOrder: string;
-    tertiaryAttribute: string;
-    tertiaryOrder: string;
+    modelType: string;
     pointsDistribution: string;
-};
-
-export type ScoringMethodFormPOST = Omit<ScoringMethodDetail, 'id' | 'pointsDistribution'> & {
-    pointsDistribution: number[]
+    sortingAttributes: SortingAttribute[]
 }
 
-export type ScoringMethodFormForm = Omit<ScoringMethodDetail, 'id'>
+export type SortingAttribute = {
+    id: number;
+    methodId?: number;
+    attribute: string;
+    order: string;
+    priorityLevel: number;
+};

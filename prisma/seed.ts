@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { ModelType, PrismaClient, SortOrder } from '@prisma/client';
 import csvParser from 'csv-parser';
 import fs from 'fs';
 import path from 'path';
@@ -72,22 +72,42 @@ async function main() {
     console.log(`Race '${race.name}' created.`);
 
     // Default Method Score
-    const scoringMethod = await prisma.scoringMethod.create({
+    const scoringCircuitoMethod = await prisma.scoringMethod.create({
         data: {
-            name: "DEFAULT REGLA DE PUNTUACION",
+            name: "DEFAULT REGLA DE PUNTUACION CIRCUITO",
             description: "Custom method with multi-level attributes",
-            formula: "custom",
-            primaryAttribute: "officialPosition",
-            primaryOrder: "asc",
-            secondaryAttribute: "officialPosition",
-            secondaryOrder: "asc",
-            tertiaryAttribute: "officialPosition",
-            tertiaryOrder: "asc",
+            modelType: ModelType.CIRCUITO,
             pointsDistribution: [10, 8, 6, 4, 2]
         }
     })
 
-    console.log(`Rule '${scoringMethod.name}' created.`);
+    console.log(`Rule '${scoringCircuitoMethod.name}' created.`);
+
+    const runnerDataKeys = [
+        "officialPosition",
+        "officialTime",
+        "officialPace",
+        "officialCategoryPosition",
+        "officialGenderPosition",
+        "realPosition",
+        "realTime",
+        "realPace",
+        "realCategoryPosition",
+        "realGenderPosition"
+    ]
+
+    const sortingCircuitoAttribute = await prisma.sortingAttribute.createManyAndReturn({
+        data: runnerDataKeys.map((key, index) => {
+            return {
+                methodId: scoringCircuitoMethod.id,
+                attribute: key,
+                order: 'ASC',
+                priorityLevel: index + 1
+            }
+        })
+    })
+
+    console.log(`sortingCircuitoAttribute '${sortingCircuitoAttribute.length}' created.`);
 
     // Default League
     const league = await prisma.league.create({
@@ -95,7 +115,7 @@ async function main() {
             name: "Default Liga",
             startDate: new Date(),
             endDate: new Date(),
-            scoringMethodId: scoringMethod.id,
+            scoringMethodId: scoringCircuitoMethod.id,
             photoUrl: 'https://images.unsplash.com/photo-1452626038306-9aae5e071dd3'
         }
     })

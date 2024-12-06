@@ -1,27 +1,16 @@
-import prisma from '@/lib/db';
-import { createScoringMethod } from '@/services/scoringMethodService';
+import { createScoringMethod, getAllScoringMethod, ScoringMethodDTO } from '@/services/scoringMethodService';
 import { NextResponse } from 'next/server';
 
+
 export async function GET() {
-    const scoringMethods = await prisma.scoringMethod.findMany({ orderBy: { id: 'asc' } });
+    const scoringMethods = await getAllScoringMethod()
     return NextResponse.json({ success: true, scoringMethods: scoringMethods });
 }
 
 export async function POST(request: Request) {
-    const body = await request.json();
+    const body = await request.json() as ScoringMethodDTO;
 
-    const newScoringMethod = await createScoringMethod({
-        name: body.name,
-        description: body.description,
-        formula: body.formula,
-        primaryAttribute: body.primaryAttribute,
-        primaryOrder: (body.primaryOrder as string).toUpperCase(),
-        secondaryAttribute: body.secondaryAttribute,
-        secondaryOrder: (body.secondaryOrder as string).toUpperCase(),
-        tertiaryAttribute: body.tertiaryAttribute,
-        tertiaryOrder: (body.tertiaryOrder as string).toUpperCase(),
-        pointsDistribution: body.pointsDistribution,
-    });
+    const newScoringMethod = await createScoringMethod(body);
 
-    return NextResponse.json(newScoringMethod, { status: 201 });
+    return NextResponse.json({ success: true, scoringMethod: newScoringMethod });
 }
