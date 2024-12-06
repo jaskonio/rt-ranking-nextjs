@@ -62,15 +62,17 @@ export const updateScoringMethod = async (id: number, data: Partial<ScoringMetho
 
 export const deleteScoringMethod = async (id: number) => {
   try {
-    await prisma.sortingAttribute.deleteMany({
-      where: { methodId: id },
-    });
 
-    const deletedScoringMethod = await prisma.scoringMethod.delete({
-      where: { id },
-    });
+    const result = await prisma.$transaction([
+      prisma.sortingAttribute.deleteMany({
+        where: { methodId: id },
+      }),
+      prisma.scoringMethod.delete({
+        where: { id },
+      })
+    ])
 
-    return deletedScoringMethod;
+    return result;
   } catch (error) {
     console.error("Error al eliminar el ScoringMethod:", error);
     throw new Error("No se pudo eliminar el ScoringMethod");
