@@ -77,7 +77,7 @@ async function main() {
             name: "DEFAULT REGLA DE PUNTUACION CIRCUITO",
             description: "Custom method with multi-level attributes",
             modelType: ModelType.CIRCUITO,
-            pointsDistribution: [10, 8, 6, 4, 2]
+            pointsDistribution: "10, 8, 6, 4, 2"
         }
     })
 

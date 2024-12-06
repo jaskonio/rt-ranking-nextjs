@@ -2,7 +2,8 @@ import prisma from "@/lib/db";
 import { sortPaces, sortTimes } from "@/lib/utils";
 import { LeagueHistoryRanking, LeagueType } from "@/type/league";
 import { RunnerLeagueDetail } from "@/type/runner";
-import { LeagueParticipant, LeagueRanking, RunnerParticipation, ScoringMethod } from "@prisma/client";
+import { ScoringMethod } from "@/type/scoring-method";
+import { LeagueParticipant, LeagueRanking, RunnerParticipation } from "@prisma/client";
 
 type LeagueDTO = {
     name: string;
@@ -50,6 +51,14 @@ export const createLeague = async (data: LeagueDTO) => {
 
 export const updateLeague = async (id: number, data: Partial<LeagueDTO>) => {
     const { name, startDate, endDate, scoringMethodId, photoUrl, visible, type, participants, races } = data
+
+    await prisma.leagueRanking.deleteMany({
+        where: { leagueId: id }
+    })
+
+    await prisma.leagueRankingHistory.deleteMany({
+        where: { leagueId: id }
+    })
 
     return await prisma.league.update({
         where: { id },
@@ -108,6 +117,20 @@ export const getAllLeagues = async () => {
 export const generateLeagueRanking = async (leagueId: number) => {
     // Obtener datos necesarios
     const league = await prisma.league.findUnique({
+        where: { id: leagueId }
+    });
+
+    if (!league) throw new Error('League not found');
+
+    if (league.type == LeagueType.CIRCUITO) {
+        calculateCircuitoRanking(leagueId)
+    } else {
+        // TODO
+    }
+}
+
+const calculateCircuitoRanking = async (leagueId: number) => {
+    const league = await prisma.league.findFirstOrThrow({
         where: { id: leagueId },
         include: {
             races: {
@@ -115,11 +138,13 @@ export const generateLeagueRanking = async (leagueId: number) => {
                     { race: { include: { participations: true } } }
             },
             participants: { include: { runner: true } },
-            scoringMethod: true,
+            scoringMethod: {
+                include: {
+                    sortingAttributes: true
+                }
+            },
         },
     });
-
-    if (!league) throw new Error('League not found');
 
     const { races, participants, scoringMethod } = league;
 
@@ -258,27 +283,18 @@ const calculateRaceRanking = async (participations: RunnerParticipation[], parti
 
     // Ordenar resultados basados en la configuración del método de puntuación
     raceResults.sort((a, b) => {
-        const primaryAttribute = scoringMethod.primaryAttribute as keyof typeof a;
-        const primaryOrderValue = scoringMethod.primaryOrder == 'ASC' ? 'ASC' : 'DESC'
-        const primaryOrder = compareAttribute(a, b, primaryAttribute, primaryOrderValue);
+        for (const sortingAttribute of scoringMethod.sortingAttributes) {
+            const attribute = sortingAttribute.attribute as keyof typeof a;
+            const order = sortingAttribute.order === 'ASC' ? 'ASC' : 'DESC';
+            const result = compareAttribute(a, b, attribute, order);
 
-        if (primaryOrder !== 0 || !scoringMethod.secondaryAttribute) return primaryOrder;
-
-        const secondaryAttribute = scoringMethod.secondaryAttribute as keyof typeof a;
-        const secondaryOrderValue = scoringMethod.secondaryOrder == 'ASC' ? 'ASC' : 'DESC'
-
-        const secondaryOrder = compareAttribute(a, b, secondaryAttribute, secondaryOrderValue);
-
-        if (secondaryOrder !== 0 || !scoringMethod.tertiaryAttribute) return secondaryOrder;
-
-        const tertiaryAttribute = scoringMethod.tertiaryAttribute as keyof typeof a;
-        const tertiaryOrderValue = scoringMethod.tertiaryOrder == 'ASC' ? 'ASC' : 'DESC'
-
-        return compareAttribute(a, b, tertiaryAttribute, tertiaryOrderValue);
+            if (result !== 0) return result;
+        }
+        return 0;
     });
 
     // Asignar puntos y posiciones
-    const pointsDistribution = scoringMethod.pointsDistribution as number[]// is {}
+    const pointsDistribution = JSON.parse(`[${scoringMethod.pointsDistribution}]`) as number[]
     const leagueRanking: Omit<LeagueRanking, 'id'>[] = raceResults.map((result, index) => ({
         leagueId: participants[0].leagueId,
         raceId: result.raceId,

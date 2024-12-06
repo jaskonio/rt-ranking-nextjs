@@ -57,8 +57,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
             scoringMethodId: parseInt(scoringMethodId),
             photoUrl: bannerFileUrl,
-            participants: participants,
-            races: races,
+            participants: participants.map(({ id, ...rest }) => ({ ...rest })),
+            races: races.map(({ id, ...rest }) => ({ ...rest })),
         })
         return Response.json({ success: true, league: updatedLeague });
     } catch (error) {

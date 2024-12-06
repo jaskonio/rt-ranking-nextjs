@@ -22,7 +22,7 @@ export const createScoringMethod = async (data: ScoringMethodDTO) => {
       name,
       description,
       modelType,
-      pointsDistribution: pointsDistribution.split(',').map(p => Number(p)),
+      pointsDistribution: pointsDistribution,
       sortingAttributes: {
         create: sortingAttributes.map((attr) => ({
           attribute: attr.attribute,
@@ -44,7 +44,7 @@ export const updateScoringMethod = async (id: number, data: Partial<ScoringMetho
       ...(description && { description }),
       ...(modelType && { modelType }),
       ...(description && { description }),
-      ...(pointsDistribution && { pointsDistribution: pointsDistribution.split(',').map(p => Number(p)) }),
+      ...(pointsDistribution && { pointsDistribution: pointsDistribution }),
       ...(sortingAttributes && {
         sortingAttributes: {
           deleteMany: {},

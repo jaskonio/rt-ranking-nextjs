@@ -178,8 +178,8 @@ model ScoringMethod {
   id                 Int                @id @default(autoincrement())
   name               String
   description        String
+  pointsDistribution String
   modelType          ModelType
-  pointsDistribution Json
   leagues            League[]
   sortingAttributes  SortingAttribute[]
 }
@@ -189,7 +189,7 @@ model SortingAttribute {
   methodId      Int
   attribute     String
   order         SortOrder
-  priorityLevel Int // Nivel de prioridad (1 = primario, 2 = secundario, etc.)
+  priorityLevel Int
   method        ScoringMethod @relation(fields: [methodId], references: [id])
 }
 
