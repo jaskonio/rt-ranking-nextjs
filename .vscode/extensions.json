@@ -1,7 +1,6 @@
 {
     "recommendations": [
         "prisma.prisma",
-        "pulkitgangwar.nextjs-snippets",
-        "bierner.markdown-mermaid"
+        "pulkitgangwar.nextjs-snippets"
     ]
 }
