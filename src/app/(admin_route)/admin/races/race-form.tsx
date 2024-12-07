@@ -28,8 +28,9 @@ export const RaceFormSchema = z.object({
     date: z.string().min(1, "Date is required"),
     platform: z.string().min(1, "Platform is required"),
     url: z.string().url("Must be a valid URL"),
-    participations: z.array(z.object({
+    RaceBasketClassification: z.array(z.object({
         id: z.number(),
+        points: z.number(),
         runnerId: z.number(),
         generalPosition: z.number(),
         categoryPosition: z.number(),
@@ -40,9 +41,11 @@ export const RaceFormSchema = z.object({
     })),
 });
 
+export type RaceFormSchemaProps = z.infer<typeof RaceFormSchema>;
+
 type RaceFormType = {
-    defaultValues: z.infer<typeof RaceFormSchema>;
-    onSubmitRequest: (payload: z.infer<typeof RaceFormSchema>) => Promise<void>;
+    defaultValues: RaceFormSchemaProps;
+    onSubmitRequest: (payload: RaceFormSchemaProps) => Promise<void>;
 }
 export default function RaceForm({ defaultValues, onSubmitRequest }: RaceFormType) {
     const router = useRouter();
@@ -52,7 +55,7 @@ export default function RaceForm({ defaultValues, onSubmitRequest }: RaceFormTyp
     const [runners, setRunners] = useState<RunnerDetail[] | null>(null)
     const [platform, setPlatform] = useState<string>(defaultValues.platform)
 
-    const form = useForm<z.infer<typeof RaceFormSchema>>({
+    const form = useForm<RaceFormSchemaProps>({
         resolver: zodResolver(RaceFormSchema),
         defaultValues: defaultValues,
     });
@@ -79,7 +82,7 @@ export default function RaceForm({ defaultValues, onSubmitRequest }: RaceFormTyp
     if (isLoading) return (<p>Cargando...</p>);
     if (!runners) return (<p>Error al recuperar los datos</p>);
 
-    async function onSubmit(values: z.infer<typeof RaceFormSchema>) {
+    async function onSubmit(values: RaceFormSchemaProps) {
         setIsLoading(true);
         console.log(values);
         try {
@@ -97,7 +100,7 @@ export default function RaceForm({ defaultValues, onSubmitRequest }: RaceFormTyp
 
     const handleParticipationsChange = (participations: RunnerBasketClassification[]) => {
         console.log(participations)
-        form.setValue('participations', participations);
+        form.setValue('RaceBasketClassification', participations);
     };
 
     return (
@@ -198,11 +201,11 @@ export default function RaceForm({ defaultValues, onSubmitRequest }: RaceFormTyp
                 {platform == Platform.CUSTOM &&
                     <FormField
                         control={form.control}
-                        name="participations"
+                        name="RaceBasketClassification"
                         render={() => (
                             <RunnerParticipationTable
                                 runners={runners}
-                                values={defaultValues.participations}
+                                values={defaultValues.RaceBasketClassification}
                                 onChange={handleParticipationsChange} />
                         )}
                     />}

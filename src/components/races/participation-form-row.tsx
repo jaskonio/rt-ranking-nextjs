@@ -50,6 +50,15 @@ export function ParticipationFormRow({ runnerSelectItems, participation, onUpdat
             </TableCell>
 
             <TableCell>
+                <Input
+                    type="number"
+                    value={participation.points}
+                    onChange={(e) => onUpdate(participation.id, "points", parseInt(e.target.value))}
+                    className="bg-gray-700/50 border-gray-600 text-white w-20"
+                />
+            </TableCell>
+
+            <TableCell>
                 <Popover open={open} onOpenChange={setOpen}>
                     <PopoverTrigger asChild>
                         <Button

@@ -11,7 +11,7 @@ export default function NewRacePage() {
         date: '',
         url: '',
         platform: Object.values(Platform)[0],
-        participations: []
+        RaceBasketClassification: []
     }
 
     const onSubmitRequest = async (payload: z.infer<typeof RaceFormSchema>) => {

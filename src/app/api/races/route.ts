@@ -1,3 +1,4 @@
+import { RaceFormSchemaProps } from '@/app/(admin_route)/admin/races/race-form';
 import prisma from '@/lib/db';
 import { normalizeRaceData } from '@/lib/normalization';
 import { validateRaceData } from '@/lib/validation';
@@ -27,16 +28,9 @@ export async function GET() {
   }
 }
 
-interface RaceRequestData {
-  name: string;
-  date: string;
-  isProcessed: boolean;
-  platform: Platform;
-  url: string;
-  participations: RunnerBasketClassification[]; // Ajusta el tipo según la estructura real de 'participations'
-}
+
 export async function POST(request: Request) {
-  const { name, date, isProcessed, platform, url, participations } = await request.json() as RaceRequestData;
+  const { name, date, platform, url, RaceBasketClassification } = await request.json() as RaceFormSchemaProps;
 
   // Validar los datos
   const errors = validateRaceData(name, date, url, platform);
@@ -54,7 +48,7 @@ export async function POST(request: Request) {
         date: normalizedDate,
         url: normalizedUrl,
         platform: normalizedPlatform,
-        isProcessed: isProcessed,
+        isProcessed: false
       },
     });
 
@@ -63,10 +57,8 @@ export async function POST(request: Request) {
       race: { ...newRace, date: newRace.date.toISOString().split('T')[0] }
     }
 
-    if (platform == Platform.CUSTOM && participations.length != 0) {
-
-
-      const filledParticipations = participations.map(({ id, ...rest }) => {
+    if (platform == Platform.CUSTOM && RaceBasketClassification.length != 0) {
+      const filledParticipations = RaceBasketClassification.map(({ id, ...rest }) => {
         return {
           ...rest,
           raceId: newRace.id,

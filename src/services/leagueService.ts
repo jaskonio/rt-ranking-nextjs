@@ -3,7 +3,7 @@ import { sortPaces, sortTimes } from "@/lib/utils";
 import { LeagueHistoryRanking, LeagueType } from "@/type/league";
 import { RunnerLeagueDetail } from "@/type/runner";
 import { ScoringMethod } from "@/type/scoring-method";
-import { LeagueParticipant, LeagueRanking, RunnerParticipation } from "@prisma/client";
+import { GlobalRaceBasketClassification, LeagueParticipant, LeagueRanking, RunnerParticipation } from "@prisma/client";
 
 type LeagueDTO = {
     name: string;
@@ -113,6 +113,70 @@ export const getAllLeagues = async () => {
     });
 }
 
+export const getRankingHistory = async (id: number) => {
+    const league = await prisma.league.findUnique({
+        where: { id },
+        include: { participants: true, races: { include: { race: true } }, rankings: true, rankingHistory: { include: { participant: { include: { runner: true } } } } },
+    });
+
+    if (!league) throw new Error('League not found');
+
+    const racesMap = new Map<number, {
+        order: number,
+        name: string,
+        date: string,
+        distance: string,
+        runners: RunnerLeagueDetail[],
+    }>();
+
+    league.races.map((race) => {
+        const result = racesMap.get(race.raceId) || {
+            order: race.order,
+            name: race.race.name,
+            date: race.race.date.toDateString(),
+            distance: '',
+            runners: []
+        }
+
+        racesMap.set(race.raceId, result)
+
+        return result
+    })
+    league.rankingHistory.map((runner) => {
+        const race = racesMap.get(runner.raceId)
+        if (!race) return {}
+
+        race.runners.push({
+            id: runner.id,
+            name: `${runner.participant.runner.name}, ${runner.participant.runner.surname}`,
+            pace: runner.bestRealPace || '',
+            photoUrl: runner.participant.runner.photoUrl || "https://i.pravatar.cc/300",
+            points: runner.points,
+            position: runner.position,
+            previousPosition: runner.previousPosition,
+            bestPosition: '1 (x2)',
+            numTopFive: '2 (x4)',
+            participation: runner.numberParticipantion
+        })
+    })
+
+    const races = Array.from(racesMap, ([raceId, data]) => {
+        return {
+            raceId,
+            ...data
+        }
+    })
+
+    const data: LeagueHistoryRanking = {
+        name: league.name,
+        photoUrl: league.photoUrl,
+        visible: league.visible,
+        races: races
+    }
+
+    return data
+}
+
 // Calcular el ranking de una carrera
 export const generateLeagueRanking = async (leagueId: number) => {
     // Obtener datos necesarios
@@ -124,11 +188,14 @@ export const generateLeagueRanking = async (leagueId: number) => {
 
     if (league.type == LeagueType.CIRCUITO) {
         calculateCircuitoRanking(leagueId)
+    } else if (league.type == LeagueType.BASKET) {
+        calculateBasketRanking(leagueId)
     } else {
-        // TODO
+        console.log('Model type not supported')
     }
 }
 
+// Ranking Circuito 
 const calculateCircuitoRanking = async (leagueId: number) => {
     const league = await prisma.league.findFirstOrThrow({
         where: { id: leagueId },
@@ -308,66 +375,93 @@ const calculateRaceRanking = async (participations: RunnerParticipation[], parti
     return leagueRanking
 }
 
-export const getRankingHistory = async (id: number) => {
+// Ranking Basket
+const calculateBasketRanking = async (leagueId: number) => {
     const league = await prisma.league.findUnique({
-        where: { id },
-        include: { participants: true, races: { include: { race: true } }, rankings: true, rankingHistory: { include: { participant: { include: { runner: true } } } } },
+        where: { id: leagueId },
+        include: {
+            races: {
+                include: { race: { include: { RaceBasketClassification: true } } }
+            },
+            globalRaceBasketClassification: true
+        }
     });
 
-    if (!league) throw new Error('League not found');
-
-    const racesMap = new Map<number, {
-        order: number,
-        name: string,
-        date: string,
-        distance: string,
-        runners: RunnerLeagueDetail[],
-    }>();
-
-    league.races.map((race) => {
-        const result = racesMap.get(race.raceId) || {
-            order: race.order,
-            name: race.race.name,
-            date: race.race.date.toDateString(),
-            distance: '',
-            runners: []
-        }
-
-        racesMap.set(race.raceId, result)
-
-        return result
-    })
-    league.rankingHistory.map((runner) => {
-        const race = racesMap.get(runner.raceId)
-        if (!race) return {}
-
-        race.runners.push({
-            id: runner.id,
-            name: `${runner.participant.runner.name}, ${runner.participant.runner.surname}`,
-            pace: runner.bestRealPace || '',
-            photoUrl: runner.participant.runner.photoUrl || "https://i.pravatar.cc/300",
-            points: runner.points,
-            position: runner.position,
-            previousPosition: runner.previousPosition,
-            bestPosition: '1 (x2)',
-            numTopFive: '2 (x4)',
-            participation: runner.numberParticipantion
-        })
-    })
-
-    const races = Array.from(racesMap, ([raceId, data]) => {
-        return {
-            raceId,
-            ...data
-        }
-    })
-
-    const data: LeagueHistoryRanking = {
-        name: league.name,
-        photoUrl: league.photoUrl,
-        visible: league.visible,
-        races: races
+    if (!league) {
+        throw new Error(`League with ID ${leagueId} not found`);
     }
 
-    return data
-}
+    await prisma.globalRaceBasketHistory.deleteMany({ where: { leagueId: leagueId } })
+    await prisma.globalRaceBasketClassification.deleteMany({ where: { leagueId: leagueId } })
+
+    const globalClassifications = new Map<number, Omit<GlobalRaceBasketClassification, 'id'>>();
+
+    for (const leagueRace of league.races) {
+        for (const classification of leagueRace.race.RaceBasketClassification.sort((a, b) => (a.points > b.points ? 1 : -1))) {
+            const existing = globalClassifications.get(classification.runnerId) || {
+                runnerId: classification.runnerId,
+                leagueId: leagueId,
+                generalFirst: 0,
+                generalSecond: 0,
+                generalThird: 0,
+                categoryFirst: 0,
+                categorySecond: 0,
+                categoryThird: 0,
+                localFirst: 0,
+                localSecond: 0,
+                localThird: 0,
+                teamsFirst: 0,
+                teamsSecond: 0,
+                teamsThird: 0,
+                points: 0,
+            };
+
+            // Sumar posiciones y puntos
+            existing.points += classification.points;
+            if (classification.generalPosition === 1) existing.generalFirst++;
+            if (classification.generalPosition === 2) existing.generalSecond++;
+            if (classification.generalPosition === 3) existing.generalThird++;
+            if (classification.categoryPosition === 1) existing.categoryFirst++;
+            if (classification.categoryPosition === 2) existing.categorySecond++;
+            if (classification.categoryPosition === 3) existing.categoryThird++;
+            if (classification.localPosition === 1) existing.localFirst++;
+            if (classification.localPosition === 2) existing.localSecond++;
+            if (classification.localPosition === 3) existing.localThird++;
+
+            globalClassifications.set(classification.runnerId, existing);
+
+            await prisma.globalRaceBasketHistory.create({
+                data: {
+                    raceId: leagueRace.race.id,
+                    runnerId: classification.runnerId,
+                    leagueId: leagueId,
+                    generalFirst: existing.generalFirst,
+                    generalSecond: existing.generalSecond,
+                    generalThird: existing.generalThird,
+                    categoryFirst: existing.categoryFirst,
+                    categorySecond: existing.categorySecond,
+                    categoryThird: existing.categoryThird,
+                    localFirst: existing.localFirst,
+                    localSecond: existing.localSecond,
+                    localThird: existing.localThird,
+                    teamsFirst: existing.teamsFirst,
+                    teamsSecond: existing.teamsSecond,
+                    teamsThird: existing.teamsThird,
+                    points: existing.points,
+                },
+            });
+        }
+    }
+
+    // Guardar las clasificaciones globales
+    const savedClassifications = [];
+    for (const classification of globalClassifications.values()) {
+        const saved = await prisma.globalRaceBasketClassification.create({
+            data: classification
+        });
+
+        savedClassifications.push(saved);
+    }
+
+    return savedClassifications;
+};

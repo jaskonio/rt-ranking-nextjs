@@ -18,6 +18,7 @@ const INITIAL_PARTICIPATION: RunnerBasketClassification = {
     time: "00:11:00",
     pace: '4:00',
     bibNumber: 1234,
+    points: 10
 };
 
 interface RunnerParticipationTableProps {
@@ -79,6 +80,7 @@ export default function RunnerParticipationTable({ runners, values, onChange }: 
                         <TableHeader>
                             <TableRow className="border-gray-700 bg-gray-800/50">
                                 <TableHead className="text-gray-300">ID</TableHead>
+                                <TableHead className="text-gray-300">Puntos</TableHead>
                                 <TableHead className="text-gray-300">Runner</TableHead>
                                 <TableHead className="text-gray-300">Dorsal</TableHead>
                                 <TableHead className="text-gray-300">Tiempo.</TableHead>

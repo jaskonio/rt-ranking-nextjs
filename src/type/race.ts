@@ -50,6 +50,7 @@ export interface RunnerBasketClassification {
   time: string;
   pace: string;
   bibNumber: number;
+  points: number;
 }
 
 export type Races = {

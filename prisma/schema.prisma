@@ -15,6 +15,7 @@ model Race {
   platform                 String
   processingStatus         String                     @default("PENDING")
   url                      String
+  globalRaceBasketHistory  GlobalRaceBasketHistory[]
   leagueRaces              LeagueRace[]
   leagueRankings           LeagueRanking[]
   leagueRankingHistory     LeagueRankingHistory[]
@@ -60,6 +61,7 @@ model RaceBasketClassification {
   pace             String
   createdAt        DateTime @default(now())
   bibNumber        Int
+  points           Float
   race             Race     @relation(fields: [raceId], references: [id])
   runner           Runner   @relation(fields: [runnerId], references: [id])
 }
@@ -85,12 +87,37 @@ model GlobalRaceBasketClassification {
   runner         Runner @relation(fields: [runnerId], references: [id])
 }
 
+model GlobalRaceBasketHistory {
+  id             Int      @id @default(autoincrement())
+  raceId         Int
+  runnerId       Int
+  leagueId       Int
+  generalFirst   Int      @default(0)
+  generalSecond  Int      @default(0)
+  generalThird   Int      @default(0)
+  categoryFirst  Int      @default(0)
+  categorySecond Int      @default(0)
+  categoryThird  Int      @default(0)
+  localFirst     Int      @default(0)
+  localSecond    Int      @default(0)
+  localThird     Int      @default(0)
+  teamsFirst     Int      @default(0)
+  teamsSecond    Int      @default(0)
+  teamsThird     Int      @default(0)
+  points         Float    @default(0.0)
+  createdAt      DateTime @default(now())
+  league         League   @relation(fields: [leagueId], references: [id])
+  race           Race     @relation(fields: [raceId], references: [id])
+  runner         Runner   @relation(fields: [runnerId], references: [id])
+}
+
 model Runner {
   id                             Int                              @id @default(autoincrement())
   name                           String
   surname                        String
   photoUrl                       String?
   GlobalRaceBasketClassification GlobalRaceBasketClassification[]
+  GlobalRaceBasketHistory        GlobalRaceBasketHistory[]
   leagueParticipant              LeagueParticipant[]
   RaceBasketClassification       RaceBasketClassification[]
   RunnerParticipation            RunnerParticipation[]
@@ -115,6 +142,7 @@ model League {
   visible                        Boolean                          @default(false)
   type                           LeagueType                       @default(CIRCUITO)
   globalRaceBasketClassification GlobalRaceBasketClassification[]
+  globalRaceBasketHistory        GlobalRaceBasketHistory[]
   scoringMethod                  ScoringMethod                    @relation(fields: [scoringMethodId], references: [id])
   participants                   LeagueParticipant[]
   races                          LeagueRace[]

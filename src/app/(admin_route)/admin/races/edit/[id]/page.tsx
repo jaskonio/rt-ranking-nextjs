@@ -3,8 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Races, RacesFormAdd } from "@/type/race";
-import RaceForm, { RaceFormSchema } from "../../race-form";
-import { z } from "zod";
+import RaceForm, { RaceFormSchemaProps } from "../../race-form";
 
 
 export default function Page() {
@@ -24,15 +23,14 @@ export default function Page() {
     if (isLoading) return <header>Loading...</header>
     if (!race) return <p>No hay carrera</p>
 
-    const defaultValues: z.infer<typeof RaceFormSchema> = {
+    const defaultValues: RaceFormSchemaProps = {
         name: race.name,
         date: race.date,
         platform: race.platform,
         url: race.url,
-        participations: race.participants || []
+        RaceBasketClassification: race.participants || []
     }
 
-    console.log(defaultValues)
     const onSubmitRequest = async (payload: RacesFormAdd) => {
         const response = await fetch(`/api/races/${id}`, {
             method: "PUT",

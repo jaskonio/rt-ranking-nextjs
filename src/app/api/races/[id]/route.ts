@@ -1,3 +1,4 @@
+import { RaceFormSchemaProps } from '@/app/(admin_route)/admin/races/race-form';
 import prisma from '@/lib/db';
 import { Platform, Races } from '@/type/race';
 
@@ -33,12 +34,21 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   const raceId = parseInt((await params).id)
 
   try {
-    const data = await request.json();
+    const { name, date, platform, url, RaceBasketClassification } = await request.json() as RaceFormSchemaProps;
 
     const updataData = await prisma.race.update({
-      where: { id: raceId }, data: {
-        ...data,
-        date: new Date(data.date)
+      where: { id: raceId },
+      data: {
+        ...(name && { name }),
+        ...(date && { date: new Date(date) }),
+        ...(platform && { platform }),
+        ...(url && { url }),
+        ...(RaceBasketClassification && {
+          RaceBasketClassification: {
+            deleteMany: {},
+            create: RaceBasketClassification.map(({ id, ...rest }) => ({ ...rest }))
+          }
+        })
       }
     })
 
