@@ -9,7 +9,6 @@ export default function NewRacePage() {
         name: '',
         startDate: '',
         endDate: '',
-        scoringMethodId: 0,
         participants: [],
         races: [],
         photoUrl: '',
@@ -18,12 +17,18 @@ export default function NewRacePage() {
     }
 
     const onSubmitRequest = async (payload: LeagueFormSchematType) => {
+        console.log('onSubmitRequest')
+        console.log(payload)
+
         const formData = new FormData();
 
         formData.append("name", payload.name);
         formData.append("startDate", payload.startDate);
         formData.append("endDate", payload.endDate);
-        formData.append("scoringMethodId", payload.scoringMethodId.toString());
+        if (payload.scoringMethodId) {
+            formData.append("scoringMethodId", String(payload.scoringMethodId));
+
+        }
         formData.append("visible", String(payload.visible));
         formData.append("type", payload.type);
 

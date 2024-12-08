@@ -46,7 +46,7 @@ export async function POST(request: Request) {
             name,
             startDate: normalizedStartDate,
             endDate: normalizedEndDate,
-            scoringMethodId: parseInt(scoringMethodId),
+            scoringMethodId: scoringMethodId === null ? 1 : parseInt(scoringMethodId),
             photoUrl: bannerFileUrl,
             visible: Boolean(visible),
             type,

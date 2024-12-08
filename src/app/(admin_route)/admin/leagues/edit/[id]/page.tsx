@@ -43,7 +43,7 @@ export default function Page() {
         formData.append("name", payload.name);
         formData.append("startDate", payload.startDate);
         formData.append("endDate", payload.endDate);
-        formData.append("scoringMethodId", payload.scoringMethodId.toString());
+        formData.append("scoringMethodId", String(payload.scoringMethodId));
         formData.append("visible", String(payload.visible));
         formData.append("type", String(payload.type));
 

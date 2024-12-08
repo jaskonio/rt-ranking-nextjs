@@ -1,7 +1,7 @@
 import prisma from "@/lib/db";
 import { sortPaces, sortTimes } from "@/lib/utils";
 import { LeagueType } from "@/type/league";
-import { RunnerGlobalBasket, RunnerLeagueDetail } from "@/type/runner";
+import { RunnerGlobalBasket } from "@/type/runner";
 import { ScoringMethod } from "@/type/scoring-method";
 import { GlobalRaceBasketClassification, LeagueGlobalCircuitoRanking, LeagueParticipant, LeagueRaceCircuitoRanking, RunnerParticipation } from "@prisma/client";
 
@@ -390,7 +390,7 @@ const calculateBasketRanking = async (leagueId: number) => {
     const globalClassifications = new Map<number, Omit<GlobalRaceBasketClassification, 'id' | 'position'>>();
 
     for (const leagueRace of league.races) {
-        for (const classification of leagueRace.race.RaceBasketClassification.sort((a, b) => (a.points > b.points ? 1 : -1))) {
+        for (const classification of leagueRace.race.RaceBasketClassification.sort((a, b) => (a.points < b.points ? 1 : -1))) {
             const existing = globalClassifications.get(classification.runnerId) || {
                 runnerId: classification.runnerId,
                 leagueId: leagueId,
@@ -453,7 +453,7 @@ const calculateBasketRanking = async (leagueId: number) => {
     })
 
     // Sort
-    const updatedClassifications: Omit<GlobalRaceBasketClassification, 'id'>[] = classifications.sort((a, b) => (a.points > b.points ? 1 : -1))
+    const updatedClassifications: Omit<GlobalRaceBasketClassification, 'id'>[] = classifications.sort((a, b) => (a.points < b.points ? 1 : -1))
         .map((runner, index) => ({
             position: index + 1,
             ...runner

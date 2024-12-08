@@ -43,10 +43,10 @@ const LeagueFormSchema = z.object({
     name: z.string().min(1, "League name is required"),
     startDate: z.string().min(1, "Start date is required"),
     endDate: z.string().min(1, "End date is required"),
-    scoringMethodId: z.number(),
     photoUrl: z.string().min(1, "Foto is required"),
     visible: z.boolean(),
     type: z.string().min(1, "Foto is required"),
+    scoringMethodId: z.number().optional(),
 
     participants: z.array(z.object({
         id: z.number(),
@@ -299,43 +299,6 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
                         />
                     </div>
 
-                    <FormField
-                        control={form.control}
-                        name="scoringMethodId"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel className="text-white">Regla de puntuación</FormLabel>
-                                <Select
-                                    onValueChange={(val) => field.onChange(Number(val))}
-                                    defaultValue={field.value.toString()}
-                                >
-                                    <FormControl>
-                                        <div className="relative">
-                                            <Calculator className="absolute left-3 top-3 h-5 w-5 text-gray-400 z-10" />
-                                            <SelectTrigger className="bg-gray-700/50 border-gray-600 text-white pl-10">
-                                                <SelectValue placeholder="Selecciona regla de puntuación" />
-                                            </SelectTrigger>
-                                        </div>
-                                    </FormControl>
-                                    <SelectContent className="bg-gray-800 border-gray-700">
-                                        {scoringMethods.map((method) => (
-                                            <SelectItem
-                                                key={method.id}
-                                                value={method.id.toString()}
-                                                className="text-white hover:bg-gray-700"
-                                            >
-                                                <div className="flex flex-col">
-                                                    <span>{method.name}</span>
-                                                    <span className="text-sm text-gray-400">{method.description}</span>
-                                                </div>
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
 
                     <FormField
                         control={form.control}
@@ -394,6 +357,48 @@ export default function LeagueForm({ defaultValues, onSubmitRequest }: LeagueFor
                             </FormItem>
                         )}
                     />
+
+                    {
+                        leagueType == LeagueType.CIRCUITO &&
+                        <FormField
+                            control={form.control}
+                            name="scoringMethodId"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="text-white">Regla de puntuación</FormLabel>
+                                    <Select
+                                        onValueChange={(val) => field.onChange(Number(val))}
+                                        defaultValue={field.value?.toString()}
+                                    >
+                                        <FormControl>
+                                            <div className="relative">
+                                                <Calculator className="absolute left-3 top-3 h-5 w-5 text-gray-400 z-10" />
+                                                <SelectTrigger className="bg-gray-700/50 border-gray-600 text-white pl-10">
+                                                    <SelectValue placeholder="Selecciona regla de puntuación" />
+                                                </SelectTrigger>
+                                            </div>
+                                        </FormControl>
+                                        <SelectContent className="bg-gray-800 border-gray-700">
+                                            {scoringMethods.map((method) => (
+                                                <SelectItem
+                                                    key={method.id}
+                                                    value={method.id.toString()}
+                                                    className="text-white hover:bg-gray-700"
+                                                >
+                                                    <div className="flex flex-col">
+                                                        <span>{method.name}</span>
+                                                        <span className="text-sm text-gray-400">{method.description}</span>
+                                                    </div>
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    }
+
                 </div>
 
                 {/* Participants Section */}
