@@ -89,7 +89,7 @@ export default function SortingAttributeTable({ sortingKeys, values, onChange }:
                             {sortingAttributes.length === 0 && (
                                 <TableRow>
                                     <TableCell colSpan={14} className="text-center text-gray-500 py-8">
-                                        Aún no hay atributos. Click en el boton "Añadir Nuevos Atributos".
+                                        Aún no hay atributos. Click en el boton Añadir Nuevos Atributos.
                                     </TableCell>
                                 </TableRow>
                             )}

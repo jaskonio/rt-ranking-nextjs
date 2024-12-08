@@ -104,7 +104,7 @@ export default function RunnerParticipationTable({ runners, values, onChange }: 
                             {participations.length === 0 && (
                                 <TableRow>
                                     <TableCell colSpan={14} className="text-center text-gray-500 py-8">
-                                        Aún no hay participantes. Click en el boton 'Añadir Participante'.
+                                        Aún no hay participantes. Click en el boton Añadir Participante.
                                     </TableCell>
                                 </TableRow>
                             )}

@@ -457,7 +457,7 @@ const calculateBasketRanking = async (leagueId: number) => {
         }
     }
 
-    const classifications = Array.from(globalClassifications, ([runnerId, data]) => {
+    const classifications = Array.from(globalClassifications, ([, data]) => {
         return {
             ...data
         }
