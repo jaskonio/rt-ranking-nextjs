@@ -37,6 +37,22 @@ export type RunnerLeagueDetail = {
     bestPosition: string; // 2, 1(x2)
 };
 
+export type RunnerGlobalBasket = {
+    position: number;
+    name: string;
+    photoUrl: string;
+    generalFirst: number;
+    generalSecond: number;
+    generalThird: number;
+    categoryFirst: number;
+    categorySecond: number;
+    categoryThird: number;
+    localFirst: number;
+    localSecond: number;
+    localThird: number;
+    points: number;
+};
+
 export type RaceLeagueDetail = {
     raceId: number;
     order: number;

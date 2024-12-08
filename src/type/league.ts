@@ -1,4 +1,4 @@
-import { RunnerLeagueDetail } from "./runner";
+import { RunnerGlobalBasket, RunnerLeagueDetail } from "./runner";
 import { ScoringMethod } from "./scoring-method";
 
 export enum LeagueType {
@@ -42,11 +42,12 @@ export type RacesHistoryRanking = {
     raceId: number;
 }
 
-export type LeagueHistoryRanking = {
+export type LeagueGlobalRanking = {
     name: string;
     visible: boolean;
     photoUrl: string;
-    races: RacesHistoryRanking[];
+    type: string;
+    data: RacesHistoryRanking[] | RunnerGlobalBasket[];
 }
 
 // API RESPONSE
@@ -58,11 +59,6 @@ export type LeagueResponses = {
 export type LeagueResponse = {
     success: boolean
     league: League
-}
-
-export type LeagueHistoryRankingResponse = {
-    success: boolean;
-    historyRanking: LeagueHistoryRanking;
 }
 
 export type LeagueSetParticipantResponse = {

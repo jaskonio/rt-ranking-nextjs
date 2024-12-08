@@ -1,15 +1,11 @@
 "use client";
 
-import { Medal, Trophy, Activity, ChevronUp, Timer, Route, ChevronDown, Minus, Signal } from "lucide-react";
+import { Medal, Trophy, ChevronUp, Timer, Route, ChevronDown, Minus } from "lucide-react";
 import Image from "next/image";
-import { cn } from "@/lib/utils";
-import { RunnerLeagueDetail } from "@/type/runner";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useMemo, useState } from "react";
-import { RacesHistoryRanking } from "@/type/league";
+import { RunnerGlobalBasket, RunnerLeagueDetail } from "@/type/runner";
 
 
-const getPodiumIcon = (position: number) => {
+export const getPodiumIcon = (position: number) => {
     switch (position) {
         case 1:
             return <Trophy className="h-6 w-6 text-yellow-400 animate-pulse" />;
@@ -22,7 +18,7 @@ const getPodiumIcon = (position: number) => {
     }
 };
 
-const getPreviusPositionContent = (runner: RunnerLeagueDetail) => {
+export const getPreviusPositionContent = (runner: RunnerLeagueDetail) => {
     if (runner.position == runner.previousPosition) {
         return (<div className="text-xs text-gray-500 mt-1">
             <Minus></Minus>
@@ -44,121 +40,14 @@ const getPreviusPositionContent = (runner: RunnerLeagueDetail) => {
     }
 }
 
-const RunnerDetail = (runner: RunnerLeagueDetail, index: number = 0) => {
-    return <div
-        key={index}
-        className={cn(
-            "relative overflow-hidden rounded-xl transition-all duration-500 transform hover:scale-[1.02]",
-            "animate-slide-in",
-            "bg-gradient-to-r shadow-lg",
-            runner.position === 1
-                ? "from-yellow-500/20 to-amber-500/20 hover:from-yellow-500/30 hover:to-amber-500/30 ring-2 ring-yellow-500/50"
-                : runner.position === 2
-                    ? "from-gray-400/20 to-gray-500/20 hover:from-gray-400/30 hover:to-gray-500/30 ring-1 ring-gray-400/50"
-                    : runner.position === 3
-                        ? "from-amber-700/20 to-amber-800/20 hover:from-amber-700/30 hover:to-amber-800/30 ring-1 ring-amber-700/50"
-                        : "from-gray-800/40 to-gray-700/40 hover:from-gray-700/60 hover:to-gray-600/60"
-        )}
-
-    >
-        <div className="p-6 flex items-center gap-6">
-            <div className="flex-shrink-0 w-16 text-center relative">
-                <div className="justify-self-start">
-                    {getPodiumIcon(runner.position) || (
-                        <span className="text-2xl font-bold text-gray-400">
-                            {runner.position}
-                        </span>
-                    )}
-                    {
-                        getPreviusPositionContent(runner)
-                    }
-
-                </div>
-            </div>
-
-            <div className="flex-shrink-0 group">
-                <div className="relative w-20 h-20 rounded-full overflow-hidden ring-2 ring-white/20 transition-transform duration-300 group-hover:scale-110">
-                    <Image
-                        src={runner.photoUrl}
-                        alt={runner.name}
-                        fill
-                        className="object-cover"
-                    />
-                </div>
-            </div>
-
-            <div className="flex-grow">
-                <div className="flex items-center gap-3">
-                    <h3 className="text-xl font-semibold text-white">
-                        {runner.name}
-                    </h3>
-                    {/* <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-300">
-                    </span> */}
-                </div>
-                <div className="mt-2 flex items-center gap-6 text-gray-300">
-                    <div className="flex items-center gap-1 bg-gray-800/50 rounded-full px-3 py-1">
-                        <Trophy className="h-4 w-4 text-yellow-400" />
-                        <span>{runner.points} pts</span>
-                    </div>
-                    <div className="flex items-center gap-1 bg-gray-800/50 rounded-full px-3 py-1">
-                        <Activity className="h-4 w-4 text-green-400" />
-                        <span>{runner.pace}</span>
-                    </div>
-
-                    <div className="flex items-center gap-1 bg-gray-800/50 rounded-full px-3 py-1">
-                        <Signal className="h-4 w-4 text-green-400" />
-                        <span>{runner.numTopFive}</span>
-                    </div>
-
-                    <div className="flex items-center gap-1 bg-gray-800/50 rounded-full px-3 py-1">
-                        <Medal className="h-4 w-4 text-yellow-400" />
-                        <span>{runner.bestPosition}</span>
-                    </div>
-
-                </div>
-            </div>
-            {/* 
-            <Link
-                href={`/races/${runner.id}`}
-                className="flex-shrink-0 flex items-center gap-1 text-blue-400 hover:text-blue-300 transition-colors bg-blue-500/10 hover:bg-blue-500/20 rounded-full px-4 py-2"
-            >
-                Details
-                <ArrowUpRight className="h-4 w-4" />
-            </Link> */}
-        </div>
-
-        {runner.position === 1 && (
-            <div className="absolute top-0 right-0 w-24 h-24">
-                <div className="absolute transform rotate-45 bg-gradient-to-r from-yellow-500 to-amber-500 text-white text-xs font-bold py-1 right-[-35px] top-[32px] w-[170px] text-center shadow-lg">
-                    CHAMPION
-                </div>
-            </div>
-        )}
-    </div>
-}
-
-const RunnerList = (runners: RunnerLeagueDetail[]) => {
-    return <div className="space-y-4">
-        {runners.map((runner, index) => (
-            RunnerDetail(runner, index)
-        ))}
-    </div>
-}
-
-type LeaderboardPage = {
+type LeaderboardProps = {
     title: string,
     subTitle: string,
     subSubTitle: string,
     bannerUrl: string
-    races: RacesHistoryRanking[],
+    runners: RunnerGlobalBasket[],
 }
-export default function LeaderboardPage({ title, subTitle, subSubTitle, races, bannerUrl }: LeaderboardPage) {
-    const [raceSelectedId, setRaceSelectedId] = useState<string>(races[0].raceId.toString())
-
-    const raceSelected = useMemo(() => {
-        return races.filter(e => e.raceId.toString() == raceSelectedId)[0]
-    }, [raceSelectedId, races])
-
+export const Leaderboard = ({ title, subTitle, subSubTitle, runners, bannerUrl }: LeaderboardProps) => {
     return (
         <div className="max-w-4xl mx-auto">
 
@@ -185,18 +74,6 @@ export default function LeaderboardPage({ title, subTitle, subSubTitle, races, b
                                     <Timer className="h-5 w-5" />
                                     <span>{subSubTitle}</span>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <Select onValueChange={setRaceSelectedId} defaultValue={raceSelectedId}>
-                                        <SelectTrigger className="w-[350px]">
-                                            <SelectValue placeholder="Carrea" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {races.map((race, index) => (
-                                                <SelectItem key={index} value={race.raceId.toString()}>{race.name}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -206,7 +83,9 @@ export default function LeaderboardPage({ title, subTitle, subSubTitle, races, b
             <div className="max-w-4xl mx-auto relative z-10 pb-12">
 
                 <div className="space-y-4">
-                    {RunnerList(raceSelected.runners)}
+                    {/* {runners.map((runner, index) => (
+                        RunnerDetail(runner, index)
+                    ))} */}
                 </div>
             </div>
         </div>
