@@ -3,7 +3,7 @@ import { sortPaces, sortTimes } from "@/lib/utils";
 import { LeagueType } from "@/type/league";
 import { RunnerGlobalBasket, RunnerLeagueDetail } from "@/type/runner";
 import { ScoringMethod } from "@/type/scoring-method";
-import { GlobalRaceBasketClassification, LeagueParticipant, LeagueRanking, RunnerParticipation } from "@prisma/client";
+import { GlobalRaceBasketClassification, LeagueGlobalCircuitoRanking, LeagueParticipant, LeagueRaceCircuitoRanking, RunnerParticipation } from "@prisma/client";
 
 type LeagueDTO = {
     name: string;
@@ -52,11 +52,11 @@ export const createLeague = async (data: LeagueDTO) => {
 export const updateLeague = async (id: number, data: Partial<LeagueDTO>) => {
     const { name, startDate, endDate, scoringMethodId, photoUrl, visible, type, participants, races } = data
 
-    await prisma.leagueRanking.deleteMany({
+    await prisma.leagueRaceCircuitoRanking.deleteMany({
         where: { leagueId: id }
     })
 
-    await prisma.leagueRankingHistory.deleteMany({
+    await prisma.leagueGlobalCircuitoRanking.deleteMany({
         where: { leagueId: id }
     })
 
@@ -97,7 +97,15 @@ export const deleteLeague = async (id: number) => {
 export const getLeagueById = async (id: number) => {
     return await prisma.league.findUnique({
         where: { id },
-        include: { participants: true, races: true, rankings: true, scoringMethod: true, rankingHistory: true },
+        include: {
+            participants: true,
+            races: true,
+            scoringMethod: true,
+            globalRaceBasketClassification: true,
+            globalRaceBasketHistory: true,
+            leagueRaceCircuitoRanking: true,
+            leagueGlobalCircuitoRanking: true
+        },
     });
 }
 
@@ -106,20 +114,17 @@ export const getAllLeagues = async () => {
         include: {
             participants: true,
             races: true,
-            rankings: true,
-            rankingHistory: true,
             scoringMethod: true,
             globalRaceBasketClassification: true,
-            globalRaceBasketHistory: true
+            globalRaceBasketHistory: true,
+            leagueRaceCircuitoRanking: true,
+            leagueGlobalCircuitoRanking: true
         },
     });
 }
 
 export const getGlobalRankingHistory = async (id: number) => {
-    const league = await prisma.league.findUnique({
-        where: { id },
-        include: { participants: true, races: { include: { race: true } }, rankings: true, rankingHistory: { include: { participant: { include: { runner: true } } } } },
-    });
+    const league = await prisma.league.findUnique({ where: { id } });
 
     if (!league) throw new Error('League not found');
 
@@ -143,59 +148,16 @@ export const getGlobalRankingHistory = async (id: number) => {
 const generateGlobalCirucuitoRanking = async (leagueId: number) => {
     const league = await prisma.league.findUnique({
         where: { id: leagueId },
-        include: { participants: true, races: { include: { race: true } }, rankings: true, rankingHistory: { include: { participant: { include: { runner: true } } } } },
+        include: {
+            participants: true,
+            races: { include: { race: true } },
+            leagueGlobalCircuitoRanking: { include: { participant: { include: { runner: true } } } },
+        },
     });
 
     if (!league) throw new Error('League not found');
 
-    const racesMap = new Map<number, {
-        order: number,
-        name: string,
-        date: string,
-        distance: string,
-        runners: RunnerLeagueDetail[],
-    }>();
-
-    league.races.map((race) => {
-        const result = racesMap.get(race.raceId) || {
-            order: race.order,
-            name: race.race.name,
-            date: race.race.date.toDateString(),
-            distance: '',
-            runners: []
-        }
-
-        racesMap.set(race.raceId, result)
-
-        return result
-    })
-
-    league.rankingHistory.map((runner) => {
-        const race = racesMap.get(runner.raceId)
-        if (!race) return {}
-
-        race.runners.push({
-            id: runner.id,
-            name: `${runner.participant.runner.name}, ${runner.participant.runner.surname}`,
-            pace: runner.bestRealPace || '',
-            photoUrl: runner.participant.runner.photoUrl || "https://i.pravatar.cc/300",
-            points: runner.points,
-            position: runner.position,
-            previousPosition: runner.previousPosition,
-            bestPosition: '1 (x2)',
-            numTopFive: '2 (x4)',
-            participation: runner.numberParticipantion
-        })
-    })
-
-    const races = Array.from(racesMap, ([raceId, data]) => {
-        return {
-            raceId,
-            ...data
-        }
-    })
-
-    return races
+    return league.leagueGlobalCircuitoRanking
 }
 
 const generateGlobalBasketRanking = async (leagueId: number) => {
@@ -278,40 +240,34 @@ const calculateCircuitoRanking = async (leagueId: number) => {
     if (races.length === 0) throw new Error('No races in the league');
 
     const racesSorted = races.sort((a, b) => (a.order > b.order ? 1 : -1))
-    const rankings = [];
-    const globalRanking = new Map<number, {
-        raceId: number;
-        points: number;
-        top5Finishes: number;
-        bestRealPace: string;
-        bestPosition: number;
-        participations: number;
-        previousPosition: number
-    }>();
+    const leagueRanking: Omit<LeagueRaceCircuitoRanking, 'id'>[] = [];
 
-    const globalRankingsArray = []
+    const globalRankingMap = new Map<number, Omit<LeagueGlobalCircuitoRanking, 'id' | 'position'>>();
 
     for (const leagueRace of racesSorted) {
         const { race } = leagueRace;
         if (!race) continue;
 
         const leagueParticipants: LeagueParticipant[] = participants.filter(p => p.disqualified_at_race_order > leagueRace.order)
-        const raceRankings = await calculateRaceRanking(
+        const raceRankingsResults = await calculateRaceRanking(
             race.participations,
             leagueParticipants,
             scoringMethod
         );
 
+        // Guardar ranking de la carrera
+        leagueRanking.push(...raceRankingsResults);
+
         // Actualizar ranking global
-        for (const rank of raceRankings) {
-            const globalEntry = globalRanking.get(rank.participantId) || {
-                raceId: 0,
+        for (const rank of raceRankingsResults) {
+            const globalEntry = globalRankingMap.get(rank.participantId) || {
+                leagueId: leagueId,
+                participantId: rank.participantId,
                 points: 0,
                 top5Finishes: 0,
-                bestRealPace: null,
-                bestPosition: Infinity,
-                participations: 0,
-                previousPosition: 0,
+                numberParticipantion: 0,
+                bestPosition: 0,
+                bestRealPace: ''
             };
 
             let updatedTop5Finishes = globalEntry.top5Finishes;
@@ -319,57 +275,36 @@ const calculateCircuitoRanking = async (leagueId: number) => {
 
             const updatedBestPace = globalEntry.bestRealPace != null ? [globalEntry.bestRealPace, rank.realPace].sort((a, b) => sortPaces(a, b, 'DESC'))[0] : rank.realPace
 
-            globalRanking.set(rank.participantId, {
-                raceId: rank.raceId,
+            globalRankingMap.set(rank.participantId, {
+                leagueId: leagueId,
+                participantId: rank.participantId,
                 points: globalEntry.points + rank.points,
                 top5Finishes: updatedTop5Finishes,
-                bestRealPace: updatedBestPace,
+                numberParticipantion: globalEntry.numberParticipantion + 1,
                 bestPosition: Math.min(globalEntry.bestPosition, rank.position),
-                participations: globalEntry.participations + 1,
-                previousPosition: globalEntry.previousPosition == 0 ? rank.position : globalEntry.previousPosition,
+                bestRealPace: updatedBestPace
             });
         }
-
-        // Guardar ranking de la carrera
-        rankings.push(...raceRankings);
-
-        // Guardar el global
-        const globalRankingList = Array.from(globalRanking.entries()).sort((a, b) => (a[1].points < b[1].points) ? 1 : -1)
-
-        const currentGlobalRanking = []
-        let index = 1
-        for (const globalRankingParticipant of globalRankingList) {
-            const globalRankingParticipantId = globalRankingParticipant[0]
-            const globalRankingParticipantData = globalRankingParticipant[1]
-
-            currentGlobalRanking.push({
-                raceId: race.id,
-                leagueId: leagueId,
-                participantId: globalRankingParticipantId,
-                position: index,
-                points: globalRankingParticipantData.points,
-                top5Finishes: globalRankingParticipantData.top5Finishes,
-                numberParticipantion: globalRankingParticipantData.participations,
-                bestRealPace: globalRankingParticipantData.bestRealPace,
-                bestPosition: globalRankingParticipantData.bestPosition,
-                previousPosition: globalRankingParticipantData.previousPosition
-            })
-
-            index += 1
-        }
-
-        globalRankingsArray.push(...currentGlobalRanking)
     }
+
+    // Sort ranking de la carrera
+    const globalRanking = Array.from(globalRankingMap.entries())
+        .sort((a, b) => (a[1].points < b[1].points) ? 1 : -1)
+        .map((data, index) => ({
+            position: index + 1,
+            ...data[1]
+        }))
 
     // Guardar race rankings
     await prisma.$transaction([
-        prisma.leagueRanking.deleteMany({ where: { leagueId } }),
-        prisma.leagueRanking.createMany({ data: rankings }),
-        prisma.leagueRankingHistory.deleteMany({ where: { leagueId } }),
-        prisma.leagueRankingHistory.createMany({ data: globalRankingsArray })
+        prisma.leagueRaceCircuitoRanking.deleteMany({ where: { leagueId } }),
+        prisma.leagueGlobalCircuitoRanking.deleteMany({ where: { leagueId } }),
+
+        prisma.leagueRaceCircuitoRanking.createMany({ data: leagueRanking }),
+        prisma.leagueGlobalCircuitoRanking.createMany({ data: globalRanking })
     ])
 
-    return { raceRankings: rankings, globalRankings: globalRankingsArray };
+    return { raceRankings: leagueRanking, globalRankings: globalRanking };
 }
 
 const calculateRaceRanking = async (participations: RunnerParticipation[], participants: LeagueParticipant[], scoringMethod: ScoringMethod) => {
@@ -420,7 +355,7 @@ const calculateRaceRanking = async (participations: RunnerParticipation[], parti
 
     // Asignar puntos y posiciones
     const pointsDistribution = JSON.parse(`[${scoringMethod.pointsDistribution}]`) as number[]
-    const leagueRanking: Omit<LeagueRanking, 'id'>[] = raceResults.map((result, index) => ({
+    const leagueRanking: Omit<LeagueRaceCircuitoRanking, 'id'>[] = raceResults.map((result, index) => ({
         leagueId: participants[0].leagueId,
         raceId: result.raceId,
         participantId: result.participantId,

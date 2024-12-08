@@ -30,7 +30,7 @@ export async function GET() {
 
 
 export async function POST(request: Request) {
-  const { name, date, platform, url, RaceBasketClassification } = await request.json() as RaceFormSchemaProps;
+  const { name, date, platform, url, raceBasketClassification } = await request.json() as RaceFormSchemaProps;
 
   // Validar los datos
   const errors = validateRaceData(name, date, url, platform);
@@ -57,8 +57,8 @@ export async function POST(request: Request) {
       race: { ...newRace, date: newRace.date.toISOString().split('T')[0] }
     }
 
-    if (platform == Platform.CUSTOM && RaceBasketClassification.length != 0) {
-      const filledParticipations = RaceBasketClassification.map(({ id, ...rest }) => {
+    if (platform == Platform.CUSTOM && raceBasketClassification.length != 0) {
+      const filledParticipations = raceBasketClassification.map(({ id, ...rest }) => {
         return {
           ...rest,
           raceId: newRace.id,

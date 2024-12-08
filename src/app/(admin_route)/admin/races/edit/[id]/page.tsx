@@ -28,7 +28,7 @@ export default function Page() {
         date: race.date,
         platform: race.platform,
         url: race.url,
-        RaceBasketClassification: race.participants || []
+        raceBasketClassification: race.participants || []
     }
 
     const onSubmitRequest = async (payload: RacesFormAdd) => {

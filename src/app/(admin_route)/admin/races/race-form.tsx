@@ -28,7 +28,7 @@ export const RaceFormSchema = z.object({
     date: z.string().min(1, "Date is required"),
     platform: z.string().min(1, "Platform is required"),
     url: z.string().url("Must be a valid URL"),
-    RaceBasketClassification: z.array(z.object({
+    raceBasketClassification: z.array(z.object({
         id: z.number(),
         points: z.number(),
         runnerId: z.number(),
@@ -100,7 +100,7 @@ export default function RaceForm({ defaultValues, onSubmitRequest }: RaceFormTyp
 
     const handleParticipationsChange = (participations: RunnerBasketClassification[]) => {
         console.log(participations)
-        form.setValue('RaceBasketClassification', participations);
+        form.setValue('raceBasketClassification', participations);
     };
 
     return (
@@ -201,11 +201,11 @@ export default function RaceForm({ defaultValues, onSubmitRequest }: RaceFormTyp
                 {platform == Platform.CUSTOM &&
                     <FormField
                         control={form.control}
-                        name="RaceBasketClassification"
+                        name="raceBasketClassification"
                         render={() => (
                             <RunnerParticipationTable
                                 runners={runners}
-                                values={defaultValues.RaceBasketClassification}
+                                values={defaultValues.raceBasketClassification}
                                 onChange={handleParticipationsChange} />
                         )}
                     />}

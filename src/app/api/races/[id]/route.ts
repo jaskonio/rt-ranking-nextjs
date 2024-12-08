@@ -34,7 +34,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   const raceId = parseInt((await params).id)
 
   try {
-    const { name, date, platform, url, RaceBasketClassification } = await request.json() as RaceFormSchemaProps;
+    const { name, date, platform, url, raceBasketClassification } = await request.json() as RaceFormSchemaProps;
 
     const updataData = await prisma.race.update({
       where: { id: raceId },
@@ -43,10 +43,10 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         ...(date && { date: new Date(date) }),
         ...(platform && { platform }),
         ...(url && { url }),
-        ...(RaceBasketClassification && {
-          RaceBasketClassification: {
+        ...(raceBasketClassification && {
+          raceBasketClassification: {
             deleteMany: {},
-            create: RaceBasketClassification.map(({ id, ...rest }) => ({ ...rest }))
+            create: raceBasketClassification.map(({ id, ...rest }) => ({ ...rest }))
           }
         })
       }
