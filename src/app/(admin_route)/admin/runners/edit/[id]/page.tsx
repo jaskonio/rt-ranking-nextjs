@@ -1,9 +1,10 @@
 "use client"
 
-import { RunnerDetail, RunnerFormProps, RunnerResponse } from "@/type/runner";
-import RunnerForm from "../../runner-form";
+import { RunnerDetail, RunnerResponse } from "@/type/runner";
+import RunnerForm, { RunnerFormSchema } from "../../runner-form";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+
 
 export default function Page() {
     const { id } = useParams();
@@ -22,13 +23,13 @@ export default function Page() {
     if (isLoading) return <header>Loading...</header>
     if (!runner) return <p>No runner registrado</p>
 
-    const defaultValues: RunnerFormProps = {
+    const defaultValues: RunnerFormSchema = {
         name: runner.name,
         surname: runner.surname,
         photoUrl: runner.photoUrl
     }
 
-    const onSubmitRequest = async (payload: RunnerFormProps) => {
+    const onSubmitRequest = async (payload: RunnerFormSchema) => {
         console.log('onSubmitRequest')
         console.log(payload)
 
@@ -37,8 +38,8 @@ export default function Page() {
         formData.append("name", payload.name);
         formData.append("surname", payload.surname);
 
-        if (payload.photoContent) {
-            const imageBlob = await fetch(payload.photoContent).then((res) => res.blob());
+        if (payload.photoUrl) {
+            const imageBlob = await fetch(payload.photoUrl).then((res) => res.blob());
             const imageFile = new File([imageBlob], "banner.jpg", { type: imageBlob.type });
             formData.append("photo", imageFile);
         }

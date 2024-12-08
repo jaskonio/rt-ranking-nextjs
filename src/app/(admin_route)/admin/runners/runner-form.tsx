@@ -1,24 +1,18 @@
 "use client";
 
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { User, ImageIcon, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
 import Image from "next/image";
-import { RunnerFormProps } from "@/type/runner";
+
 
 const formSchema = z.object({
     name: z.string().min(1, "Name is required"),
@@ -26,13 +20,15 @@ const formSchema = z.object({
     photoUrl: z.any().optional(),
 });
 
+export type RunnerFormSchema = z.infer<typeof formSchema>
+
 type RunnerFormType = {
-    defaultValues: RunnerFormProps;
-    onSubmitRequest: (payload: RunnerFormProps) => Promise<void>;
+    defaultValues: RunnerFormSchema;
+    onSubmitRequest: (payload: RunnerFormSchema) => Promise<void>;
 }
 export default function RunnerForm({ defaultValues, onSubmitRequest }: RunnerFormType) {
     const router = useRouter();
-    const [photoPreview, setPhotoPreview] = useState<string | null>(defaultValues.photoContent || defaultValues.photoUrl || null);
+    const [photoPreview, setPhotoPreview] = useState<string | null>(defaultValues.photoUrl || null);
     const [isLoading, setIsLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
 
@@ -62,13 +58,13 @@ export default function RunnerForm({ defaultValues, onSubmitRequest }: RunnerFor
         setIsLoading(true);
         console.log(values);
         try {
-            const payload: RunnerFormProps = {
+            const payload: RunnerFormSchema = {
                 ...values,
                 photoUrl: ''
             }
 
             if (photoPreview && !photoPreview.startsWith('htt')) {
-                payload.photoContent = photoPreview
+                payload.photoUrl = photoPreview
             }
 
             await onSubmitRequest(payload)

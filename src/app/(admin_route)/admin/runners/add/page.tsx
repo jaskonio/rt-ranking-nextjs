@@ -1,23 +1,22 @@
 "use client"
 
-import { RunnerFormProps, RunnerResponse } from "@/type/runner";
-import RunnerForm from "../runner-form";
+import { RunnerResponse } from "@/type/runner";
+import RunnerForm, { RunnerFormSchema } from "../runner-form";
 
 export default function Page() {
-    const defaultValues: RunnerFormProps = {
+    const defaultValues: RunnerFormSchema = {
         name: '',
         surname: '',
-        photoUrl: ''
     }
 
-    const onSubmitRequest = async (payload: RunnerFormProps) => {
+    const onSubmitRequest = async (payload: RunnerFormSchema) => {
         const formData = new FormData();
 
         formData.append("name", payload.name);
         formData.append("surname", payload.surname);
 
-        if (payload.photoContent) {
-            const imageBlob = await fetch(payload.photoContent).then((res) => res.blob());
+        if (payload.photoUrl) {
+            const imageBlob = await fetch(payload.photoUrl).then((res) => res.blob());
             const imageFile = new File([imageBlob], "banner.jpg", { type: imageBlob.type });
             formData.append("photo", imageFile);
         }
