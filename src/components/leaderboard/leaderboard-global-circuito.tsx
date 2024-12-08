@@ -1,12 +1,9 @@
 "use client";
 
-import { Medal, Trophy, Activity, ChevronUp, Timer, Route, ChevronDown, Minus, Signal } from "lucide-react";
+import { Medal, Trophy, Activity, Route, Signal } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { RunnerLeagueDetail } from "@/type/runner";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useMemo, useState } from "react";
-import { RacesHistoryRanking } from "@/type/league";
+import { RunnerGlobalCircuito } from "@/type/runner";
 
 
 const getPodiumIcon = (position: number) => {
@@ -22,31 +19,9 @@ const getPodiumIcon = (position: number) => {
     }
 };
 
-const getPreviusPositionContent = (runner: RunnerLeagueDetail) => {
-    if (runner.position == runner.previousPosition) {
-        return (<div className="text-xs text-gray-500 mt-1">
-            <Minus></Minus>
-        </div>)
-    }
-
-    if (runner.position < runner.previousPosition) {
-        return (<div className="text-xs text-green-500 mt-1">
-            <ChevronUp></ChevronUp>
-            <span>{runner.position - runner.previousPosition}</span>
-        </div>)
-    }
-
-    if (runner.position > runner.previousPosition) {
-        return (<div className="text-xs text-red-500 mt-1">
-            <ChevronDown></ChevronDown>
-            <span>{runner.position - runner.previousPosition}</span>
-        </div>)
-    }
-}
-
-const RunnerDetail = (runner: RunnerLeagueDetail, index: number = 0) => {
+const RunnerDetail = (runner: RunnerGlobalCircuito) => {
     return <div
-        key={index}
+        key={runner.position}
         className={cn(
             "relative overflow-hidden rounded-xl transition-all duration-500 transform hover:scale-[1.02]",
             "animate-slide-in",
@@ -69,10 +44,6 @@ const RunnerDetail = (runner: RunnerLeagueDetail, index: number = 0) => {
                             {runner.position}
                         </span>
                     )}
-                    {
-                        getPreviusPositionContent(runner)
-                    }
-
                 </div>
             </div>
 
@@ -92,8 +63,6 @@ const RunnerDetail = (runner: RunnerLeagueDetail, index: number = 0) => {
                     <h3 className="text-xl font-semibold text-white">
                         {runner.name}
                     </h3>
-                    {/* <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-300">
-                    </span> */}
                 </div>
                 <div className="mt-2 flex items-center gap-6 text-gray-300">
                     <div className="flex items-center gap-1 bg-gray-800/50 rounded-full px-3 py-1">
@@ -102,29 +71,23 @@ const RunnerDetail = (runner: RunnerLeagueDetail, index: number = 0) => {
                     </div>
                     <div className="flex items-center gap-1 bg-gray-800/50 rounded-full px-3 py-1">
                         <Activity className="h-4 w-4 text-green-400" />
-                        <span>{runner.pace}</span>
-                    </div>
-
-                    <div className="flex items-center gap-1 bg-gray-800/50 rounded-full px-3 py-1">
-                        <Signal className="h-4 w-4 text-green-400" />
-                        <span>{runner.numTopFive}</span>
+                        <span>{runner.bestRealPace}</span>
                     </div>
 
                     <div className="flex items-center gap-1 bg-gray-800/50 rounded-full px-3 py-1">
                         <Medal className="h-4 w-4 text-yellow-400" />
                         <span>{runner.bestPosition}</span>
                     </div>
-
+                    <div className="flex items-center gap-1 bg-gray-800/50 rounded-full px-3 py-1">
+                        <Signal className="h-4 w-4 text-green-400" />
+                        <span>{runner.numberParticipantion}</span>
+                    </div>
+                    <div className="flex items-center gap-1 bg-gray-800/50 rounded-full px-3 py-1">
+                        <Signal className="h-4 w-4 text-green-400" />
+                        <span>Num Top Five: {runner.top5Finishes}</span>
+                    </div>
                 </div>
             </div>
-            {/* 
-            <Link
-                href={`/races/${runner.id}`}
-                className="flex-shrink-0 flex items-center gap-1 text-blue-400 hover:text-blue-300 transition-colors bg-blue-500/10 hover:bg-blue-500/20 rounded-full px-4 py-2"
-            >
-                Details
-                <ArrowUpRight className="h-4 w-4" />
-            </Link> */}
         </div>
 
         {runner.position === 1 && (
@@ -137,27 +100,13 @@ const RunnerDetail = (runner: RunnerLeagueDetail, index: number = 0) => {
     </div>
 }
 
-const RunnerList = (runners: RunnerLeagueDetail[]) => {
-    return <div className="space-y-4">
-        {runners.map((runner, index) => (
-            RunnerDetail(runner, index)
-        ))}
-    </div>
-}
-
 type LeaderboardGlobalCircuitoProps = {
     title: string,
     subTitle: string,
     bannerUrl: string
-    races: RacesHistoryRanking[],
+    runners: RunnerGlobalCircuito[],
 }
-export default function LeaderboardGlobalCircuito({ title, subTitle, races, bannerUrl }: LeaderboardGlobalCircuitoProps) {
-    const [raceSelectedId, setRaceSelectedId] = useState<string>(races[0].raceId.toString())
-
-    const raceSelected = useMemo(() => {
-        return races.filter(e => e.raceId.toString() == raceSelectedId)[0]
-    }, [raceSelectedId, races])
-
+export default function LeaderboardGlobalCircuito({ title, subTitle, runners, bannerUrl }: LeaderboardGlobalCircuitoProps) {
     return (
         <div className="max-w-4xl mx-auto">
 
@@ -180,18 +129,6 @@ export default function LeaderboardGlobalCircuito({ title, subTitle, races, bann
                                     <Route className="h-5 w-5" />
                                     <span>{subTitle}</span>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <Select onValueChange={setRaceSelectedId} defaultValue={raceSelectedId}>
-                                        <SelectTrigger className="w-[350px]">
-                                            <SelectValue placeholder="Carrea" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {races.map((race, index) => (
-                                                <SelectItem key={index} value={race.raceId.toString()}>{race.name}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -201,7 +138,9 @@ export default function LeaderboardGlobalCircuito({ title, subTitle, races, bann
             <div className="max-w-4xl mx-auto relative z-10 pb-12">
 
                 <div className="space-y-4">
-                    {RunnerList(raceSelected.runners)}
+                    {runners.map((runner) => (
+                        RunnerDetail(runner)
+                    ))}
                 </div>
             </div>
         </div>

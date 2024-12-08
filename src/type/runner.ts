@@ -37,6 +37,17 @@ export type RunnerLeagueDetail = {
     bestPosition: string; // 2, 1(x2)
 };
 
+export type RunnerGlobalCircuito = {
+    position: number;
+    name: string;
+    photoUrl: string;
+    top5Finishes: number;
+    numberParticipantion: number;
+    bestPosition: number;
+    bestRealPace: string;
+    points: number;
+};
+
 export type RunnerGlobalBasket = {
     position: number;
     name: string;

@@ -1,4 +1,4 @@
-import { RunnerGlobalBasket, RunnerLeagueDetail } from "./runner";
+import { RunnerGlobalBasket, RunnerGlobalCircuito, RunnerLeagueDetail } from "./runner";
 import { ScoringMethod } from "./scoring-method";
 
 export enum LeagueType {
@@ -47,7 +47,7 @@ export type LeagueGlobalRanking = {
     visible: boolean;
     photoUrl: string;
     type: string;
-    data: RacesHistoryRanking[] | RunnerGlobalBasket[];
+    data: RunnerGlobalCircuito[] | RunnerGlobalBasket[];
 }
 
 // API RESPONSE

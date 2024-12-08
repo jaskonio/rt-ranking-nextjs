@@ -1,11 +1,11 @@
 "use client";
 
 import LeaderboardGlobalBasket from "@/components/leaderboard/leaderboard-global-basket";
-import { LeagueGlobalRanking, LeagueType, RacesHistoryRanking } from "@/type/league";
+import { LeagueGlobalRanking, LeagueType } from "@/type/league";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react"
 import LeaderboardGlobalCircuito from "@/components/leaderboard/leaderboard-global-circuito";
-import { RunnerGlobalBasket } from "@/type/runner";
+import { RunnerGlobalBasket, RunnerGlobalCircuito } from "@/type/runner";
 
 
 export default function Page() {
@@ -31,7 +31,7 @@ export default function Page() {
             <LeaderboardGlobalCircuito
                 title={league.name}
                 subTitle="2023"
-                races={league.data as RacesHistoryRanking[]}
+                runners={league.data as RunnerGlobalCircuito[]}
                 bannerUrl={league.photoUrl} />
         );
     }

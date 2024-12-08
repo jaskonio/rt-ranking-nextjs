@@ -1,7 +1,7 @@
 import prisma from "@/lib/db";
 import { sortPaces, sortTimes } from "@/lib/utils";
 import { LeagueType } from "@/type/league";
-import { RunnerGlobalBasket } from "@/type/runner";
+import { RunnerGlobalBasket, RunnerGlobalCircuito } from "@/type/runner";
 import { ScoringMethod } from "@/type/scoring-method";
 import { GlobalRaceBasketClassification, LeagueGlobalCircuitoRanking, LeagueParticipant, LeagueRaceCircuitoRanking, RunnerParticipation } from "@prisma/client";
 
@@ -128,7 +128,7 @@ export const getGlobalRankingHistory = async (id: number) => {
 
     if (!league) throw new Error('League not found');
 
-    let data: any[] = []
+    let data: RunnerGlobalCircuito[] | RunnerGlobalBasket[] = []
 
     if (league.type == LeagueType.CIRCUITO) {
         data = await generateGlobalCirucuitoRanking(league.id)
@@ -157,7 +157,18 @@ const generateGlobalCirucuitoRanking = async (leagueId: number) => {
 
     if (!league) throw new Error('League not found');
 
-    return league.leagueGlobalCircuitoRanking
+    const ranking: RunnerGlobalCircuito[] = league.leagueGlobalCircuitoRanking.map(runner => ({
+        position: runner.position,
+        name: runner.participant.runner.name + ' ' + runner.participant.runner.surname,
+        photoUrl: runner.participant.runner.photoUrl || '',
+        top5Finishes: runner.top5Finishes,
+        numberParticipantion: runner.numberParticipantion,
+        bestPosition: runner.bestPosition,
+        bestRealPace: runner.bestRealPace,
+        points: runner.points,
+    }))
+
+    return ranking
 }
 
 const generateGlobalBasketRanking = async (leagueId: number) => {
@@ -179,7 +190,7 @@ const generateGlobalBasketRanking = async (leagueId: number) => {
     league.globalRaceBasketClassification.map((runnerClassification) => {
         globalRaceBasketClassification.push({
             position: runnerClassification.position,
-            name: `${runnerClassification.runner.name}, ${runnerClassification.runner.surname}`,
+            name: runnerClassification.runner.name + ' ' + runnerClassification.runner.surname,
             photoUrl: runnerClassification.runner.photoUrl || '',
             generalFirst: runnerClassification.generalFirst,
             generalSecond: runnerClassification.generalSecond,
@@ -266,14 +277,14 @@ const calculateCircuitoRanking = async (leagueId: number) => {
                 points: 0,
                 top5Finishes: 0,
                 numberParticipantion: 0,
-                bestPosition: 0,
-                bestRealPace: ''
+                bestPosition: rank.position,
+                bestRealPace: '59m59s/km'
             };
 
             let updatedTop5Finishes = globalEntry.top5Finishes;
             if (rank.top5Finishes) updatedTop5Finishes++;
 
-            const updatedBestPace = globalEntry.bestRealPace != null ? [globalEntry.bestRealPace, rank.realPace].sort((a, b) => sortPaces(a, b, 'DESC'))[0] : rank.realPace
+            const updatedBestPace = globalEntry.bestRealPace != null ? [globalEntry.bestRealPace, rank.realPace].sort((a, b) => sortPaces(a, b, 'ASC'))[0] : rank.realPace
 
             globalRankingMap.set(rank.participantId, {
                 leagueId: leagueId,
