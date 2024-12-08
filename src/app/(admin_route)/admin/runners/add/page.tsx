@@ -7,6 +7,7 @@ export default function Page() {
     const defaultValues: RunnerFormProps = {
         name: '',
         surname: '',
+        photoUrl: ''
     }
 
     const onSubmitRequest = async (payload: RunnerFormProps) => {

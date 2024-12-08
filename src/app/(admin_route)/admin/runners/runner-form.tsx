@@ -64,6 +64,7 @@ export default function RunnerForm({ defaultValues, onSubmitRequest }: RunnerFor
         try {
             const payload: RunnerFormProps = {
                 ...values,
+                photoUrl: ''
             }
 
             if (photoPreview && !photoPreview.startsWith('htt')) {

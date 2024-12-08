@@ -75,8 +75,6 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
 
   try {
     await prisma.leagueRace.updateMany({ where: { raceId: raceId }, data: { raceId: 1 } });
-    await prisma.leagueRanking.updateMany({ where: { raceId: raceId }, data: { raceId: 1 } });
-    await prisma.leagueRankingHistory.updateMany({ where: { raceId: raceId }, data: { raceId: 1 } });
 
     await prisma.runnerParticipation.deleteMany({ where: { raceId: raceId } });
     await prisma.raceProcessingHistory.deleteMany({ where: { raceId: raceId } });

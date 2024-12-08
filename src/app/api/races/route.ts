@@ -2,7 +2,7 @@ import { RaceFormSchemaProps } from '@/app/(admin_route)/admin/races/race-form';
 import prisma from '@/lib/db';
 import { normalizeRaceData } from '@/lib/normalization';
 import { validateRaceData } from '@/lib/validation';
-import { Platform, RaceResponse, Races, RunnerBasketClassification } from '@/type/race';
+import { Platform, RaceResponse, Races } from '@/type/race';
 
 
 export async function GET() {
