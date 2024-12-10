@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { v4 as uuidv4 } from "uuid";
 
 
@@ -30,6 +30,23 @@ export async function uploadToS3(buffer: Buffer, fileName: string | undefined): 
     } catch (error) {
         console.error("Error al subir el archivo a S3:", error);
         throw new Error("Error uploading file to S3");
+    }
+}
+
+export async function deleteFromS3(fileKey: string): Promise<void> {
+    try {
+        const bucketName = process.env.S3_BUCKET_NAME;
+        const command = new DeleteObjectCommand({
+            Bucket: bucketName,
+            Key: fileKey,
+        });
+
+        await s3Client.send(command);
+
+        console.log(`Archivo eliminado: ${fileKey}`);
+    } catch (error) {
+        console.error("Error eliminando el archivo de S3:", error);
+        throw new Error("No se pudo eliminar el archivo de S3.");
     }
 }
 

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { updateRunner, deleteRunner, getRunnerById } from '@/services/runnerService';
-import { uploadToS3 } from '@/services/awsService';
+import { deleteFromS3, uploadToS3 } from '@/services/awsService';
 
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -44,7 +44,17 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     const { id } = await params;
 
     try {
-        await deleteRunner(parseInt(id));
+        const result = await deleteRunner(parseInt(id));
+        if (!result) {
+            return NextResponse.json({ error: 'Runner not found' }, { status: 500 });
+        }
+
+        if (!result.photoUrl) {
+            return NextResponse.json({ success: true });
+        }
+
+        const file_name = result.photoUrl.split('/').at(-1) || ''
+        await deleteFromS3(file_name)
         return NextResponse.json({ success: true });
     } catch (error) {
         console.error("Ocurrió un error al eliminar el runner:", error);
