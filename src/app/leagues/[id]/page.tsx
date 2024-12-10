@@ -1,11 +1,10 @@
 "use client";
 
 import LeaderboardGlobalBasket from "@/components/leaderboard/leaderboard-global-basket";
-import { LeagueGlobalRanking, LeagueType } from "@/type/league";
+import { LeagueGlobalRanking, LeagueType, RunnerGlobalBasket, RunnerGlobalCircuito } from "@/type/league";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react"
 import LeaderboardGlobalCircuito from "@/components/leaderboard/leaderboard-global-circuito";
-import { RunnerGlobalBasket, RunnerGlobalCircuito } from "@/type/runner";
 
 
 export default function Page() {

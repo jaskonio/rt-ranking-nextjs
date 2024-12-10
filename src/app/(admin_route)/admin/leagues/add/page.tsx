@@ -33,7 +33,7 @@ export default function NewRacePage() {
         formData.append("type", payload.type);
 
         const imageBlob = await fetch(payload.photoUrl).then((res) => res.blob());
-        const imageFile = new File([imageBlob], "banner.jpg", { type: imageBlob.type });
+        const imageFile = new File([imageBlob], "avatar.jpg", { type: imageBlob.type });
         formData.append("photo", imageFile);
 
         formData.append("participants", JSON.stringify(payload.participants));

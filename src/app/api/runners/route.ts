@@ -2,6 +2,7 @@ import prisma from '@/lib/db';
 import { addRunner } from '../../../services/runnerService';
 import { uploadToS3 } from '@/services/awsService';
 
+
 export async function GET() {
     try {
         const runners = await prisma.runner.findMany({ orderBy: { id: 'asc' } });
@@ -23,7 +24,7 @@ export async function POST(req: Request) {
         if (!photoFile) return Response.json({ error: 'Photo is required' }, { status: 400 });
 
         const buffer = await photoFile.arrayBuffer();
-        const photoUrl = await uploadToS3(Buffer.from(buffer), photoFile.name);
+        const photoUrl = await uploadToS3(Buffer.from(buffer), undefined);
 
         const runner = await addRunner({ name, surname }, photoUrl);
         return Response.json({ success: true, runner });
