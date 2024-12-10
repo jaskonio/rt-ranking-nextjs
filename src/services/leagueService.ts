@@ -1,7 +1,6 @@
 import prisma from "@/lib/db";
 import { sortPaces, sortTimes } from "@/lib/utils";
-import { LeagueType } from "@/type/league";
-import { RunnerGlobalBasket, RunnerGlobalCircuito } from "@/type/runner";
+import { LeagueType, RunnerGlobalBasket, RunnerGlobalCircuito } from "@/type/league";
 import { ScoringMethod } from "@/type/scoring-method";
 import { GlobalRaceBasketClassification, LeagueGlobalCircuitoRanking, LeagueParticipant, LeagueRaceCircuitoRanking, RunnerParticipation } from "@prisma/client";
 
@@ -91,7 +90,34 @@ export const updateLeague = async (id: number, data: Partial<LeagueDTO>) => {
 }
 
 export const deleteLeague = async (id: number) => {
-    await prisma.league.delete({ where: { id } });
+
+    const globalRaceBasketClassification = prisma.globalRaceBasketClassification.deleteMany({
+        where: { leagueId: id }
+    })
+
+    const globalRaceBasketHistory = prisma.globalRaceBasketHistory.deleteMany({
+        where: { leagueId: id }
+    })
+
+    const leagueGlobalCircuitoRanking = prisma.leagueGlobalCircuitoRanking.deleteMany({
+        where: { leagueId: id }
+    })
+
+    const leagueParticipant = prisma.leagueParticipant.deleteMany({
+        where: { leagueId: id }
+    })
+
+    const leagueRace = prisma.leagueRace.deleteMany({
+        where: { leagueId: id }
+    })
+
+    const leagueRaceCircuitoRanking = prisma.leagueRaceCircuitoRanking.deleteMany({
+        where: { leagueId: id }
+    })
+
+    const league = prisma.league.delete({ where: { id } });
+    const results = await prisma.$transaction([globalRaceBasketClassification, globalRaceBasketHistory, leagueGlobalCircuitoRanking, leagueParticipant, leagueRace, leagueRaceCircuitoRanking, league])
+    return results[6]
 }
 
 export const getLeagueById = async (id: number) => {

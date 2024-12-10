@@ -49,7 +49,3 @@ export async function deleteFromS3(fileKey: string): Promise<void> {
         throw new Error("No se pudo eliminar el archivo de S3.");
     }
 }
-
-export const saveBannerContent = async () => {
-    return 'https://images.unsplash.com/photo-1452626038306-9aae5e071dd3'
-}

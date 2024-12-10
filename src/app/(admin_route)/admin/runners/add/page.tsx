@@ -17,7 +17,7 @@ export default function Page() {
 
         if (payload.photoUrl) {
             const imageBlob = await fetch(payload.photoUrl).then((res) => res.blob());
-            const imageFile = new File([imageBlob], "banner.jpg", { type: imageBlob.type });
+            const imageFile = new File([imageBlob], "avatar.jpg", { type: imageBlob.type });
             formData.append("photo", imageFile);
         }
 

@@ -23,7 +23,7 @@ export default function LeagueList({ data }: { data: League[] }) {
 
     const handleDelete = async (id: number) => {
         try {
-            const response = await fetch(`/api/league/${id}`, {
+            const response = await fetch(`/api/leagues/${id}`, {
                 method: "DELETE",
             });
 
