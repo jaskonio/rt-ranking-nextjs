@@ -194,6 +194,14 @@ export default function RacesList({ data }: { data: Races[] }) {
                         </TableCell>
                     </TableRow>
                 ))}
+
+                {races.length === 0 && (
+                    <TableRow>
+                        <TableCell colSpan={7} className="text-center text-gray-500 py-8">
+                            No hay carreras creadas.
+                        </TableCell>
+                    </TableRow>
+                )}
             </TableBody>
         </Table>
     );

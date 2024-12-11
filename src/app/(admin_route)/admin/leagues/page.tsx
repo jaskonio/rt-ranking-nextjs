@@ -33,7 +33,6 @@ export default function Page() {
             </div>
         );
     }
-    if (!leagues || leagues.length === 0) return <p>No hay ligas registradas</p>
 
     return (
         <div className="max-w-4xl mx-auto">

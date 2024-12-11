@@ -170,6 +170,14 @@ export default function LeagueList({ data }: { data: League[] }) {
                         </TableCell>
                     </TableRow>
                 ))}
+
+                {leagues.length === 0 && (
+                    <TableRow>
+                        <TableCell colSpan={6} className="text-center text-gray-500 py-8">
+                            No hay liga creadas
+                        </TableCell>
+                    </TableRow>
+                )}
             </TableBody>
         </Table>
     );
