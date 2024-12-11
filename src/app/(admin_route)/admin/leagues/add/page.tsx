@@ -45,7 +45,7 @@ export default function NewRacePage() {
         });
 
         const newLeagueJsonResponse: LeagueResponse = await newLeagueResponse.json()
-        if (!newLeagueJsonResponse.success) throw new Error("Error al crear la nueva Liga")
+        if (!newLeagueJsonResponse.success) throw new Error(newLeagueJsonResponse.message)
     }
 
     return (

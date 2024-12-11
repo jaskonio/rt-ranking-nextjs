@@ -160,6 +160,7 @@ export type LeagueResponses = {
 export type LeagueResponse = {
     success: boolean
     league: League
+    message?: string
 }
 
 export type LeagueSetParticipantResponse = {

@@ -4,6 +4,7 @@ import { LeagueType, RunnerGlobalBasket, RunnerGlobalCircuito } from "@/type/lea
 import { ScoringMethod } from "@/type/scoring-method";
 import { GlobalRaceBasketClassification, LeagueGlobalCircuitoRanking, LeagueParticipant, LeagueRaceCircuitoRanking, RunnerParticipation } from "@prisma/client";
 import { deleteFromS3, uploadToS3 } from "./awsService";
+import logger from "@/lib/logguer";
 
 type LeagueDTO = {
     name: string;
@@ -31,25 +32,35 @@ type LeagueRaceDTO = {
 export const createLeague = async (data: LeagueDTO) => {
     const { name, startDate, endDate, scoringMethodId, photo, visible, type, participants, races } = data
 
-    const buffer = await photo.arrayBuffer();
-    const bannerFileUrl = await uploadToS3(Buffer.from(buffer), undefined);
-    return await prisma.league.create({
-        data: {
-            name,
-            startDate,
-            endDate,
-            scoringMethodId,
-            photoUrl: bannerFileUrl,
-            visible,
-            type,
-            participants: {
-                create: participants
-            },
-            races: {
-                create: races
+    try {
+        const buffer = await photo.arrayBuffer();
+        const bannerFileUrl = await uploadToS3(Buffer.from(buffer), undefined);
+        const league = await prisma.league.create({
+            data: {
+                name,
+                startDate,
+                endDate,
+                scoringMethodId,
+                photoUrl: bannerFileUrl,
+                visible,
+                type,
+                participants: {
+                    create: participants
+                },
+                races: {
+                    create: races
+                }
             }
-        }
-    });
+        });
+        logger.info("League created successfully", { leagueId: league.id, name: league.name });
+
+        return league;
+    } catch (error) {
+        const message = error instanceof Error ? error.message : 'Error al guardar'
+
+        logger.error('Error during createLeague', { error: message, leagueName: name });
+        throw new Error('An error occurred during createLeague. Please try again.');
+    }
 }
 
 export const updateLeague = async (id: number, data: Partial<LeagueDTO>) => {

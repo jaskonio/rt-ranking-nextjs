@@ -70,6 +70,6 @@ export async function POST(request: Request) {
     } catch (error) {
         console.error("Ocurrió un error:", error);
 
-        return Response.json({ success: false, message: "Error al crear la Liga" }, { status: 500 });
+        return Response.json({ success: false, message: "Error al crear la Liga contancte con el Administrador" }, { status: 500 });
     }
 }
