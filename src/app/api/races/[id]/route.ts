@@ -46,6 +46,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         ...(raceBasketClassification && {
           raceBasketClassification: {
             deleteMany: {},
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             create: raceBasketClassification.map(({ id, ...rest }) => ({ ...rest }))
           }
         })

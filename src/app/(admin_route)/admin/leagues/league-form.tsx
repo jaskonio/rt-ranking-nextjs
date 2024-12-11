@@ -3,7 +3,6 @@
 import Image from "next/image";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import * as z from "zod";
 import { Trophy, Calendar, Calculator, Users, Flag, ImageIcon, X, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,35 +32,11 @@ import { Races } from "@/type/race";
 import { RunnerDetail } from "@/type/runner";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CreateLeagueSkeleton } from "@/components/create-league-skeleton";
-import { LeagueParticipant, LeagueRace, LeagueType } from "@/type/league";
+import { LeagueFormSchema, LeagueFormSchematType, LeagueParticipant, LeagueRace, LeagueType } from "@/type/league";
 import { ScoringMethod } from "@/type/scoring-method";
 import SelectParticipantTable from "@/components/league/select-participant-table";
 import SelectRaceTable from "@/components/league/select-race-table";
 
-
-const LeagueFormSchema = z.object({
-    name: z.string().min(1, "League name is required"),
-    startDate: z.string().min(1, "Start date is required"),
-    endDate: z.string().min(1, "End date is required"),
-    photoUrl: z.string().min(1, "Foto is required"),
-    visible: z.boolean(),
-    type: z.string().min(1, "Foto is required"),
-    scoringMethodId: z.number().optional(),
-
-    participants: z.array(z.object({
-        id: z.number(),
-        runnerId: z.number(),
-        bibNumber: z.number(),
-        disqualified_at_race_order: z.number()
-    })),
-    races: z.array(z.object({
-        id: z.number(),
-        raceId: z.number(),
-        order: z.number(),
-    })),
-});
-
-export type LeagueFormSchematType = z.infer<typeof LeagueFormSchema>
 
 type LeagueFormType = {
     defaultValues: LeagueFormSchematType;

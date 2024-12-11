@@ -1,6 +1,5 @@
-import { deleteFromS3, uploadToS3 } from "@/services/awsService";
 import { deleteLeague, getLeagueById, updateLeague } from "@/services/leagueService";
-import { LeagueParticipant, LeagueRace, LeagueType } from "@/type/league";
+import { LeagueFormSchema, LeagueType } from "@/type/league";
 
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -24,41 +23,54 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 }
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
-    const id = parseInt((await params).id)
-
-    const formData = await request.formData();
-    const name = formData.get("name") as string;
-    const startDate = formData.get("startDate") as string;
-    const endDate = formData.get("endDate") as string;
-    const scoringMethodId = formData.get("scoringMethodId") as string;
-    const bannerFile = formData.get("photo") as File;
-    const visible = formData.get("visible") as string;
-    const type = formData.get("type") as LeagueType;
-    const participantsJsonString = formData.get("participants") as string;
-    const racesJsonString = formData.get("races") as string;
-
-    const participants = JSON.parse(participantsJsonString) as LeagueParticipant[]
-    const races = JSON.parse(racesJsonString) as LeagueRace[]
-
-    // Validar los datos
-    // Normalización de los datos
-    const normalizedStartDate = new Date(startDate)
-    const normalizedEndDate = new Date(endDate)
+    const leagueId = parseInt((await params).id)
 
     try {
-        const buffer = await bannerFile.arrayBuffer();
-        const bannerFileUrl = await uploadToS3(Buffer.from(buffer), undefined);
+        const formData = await request.formData();
 
-        const updatedLeague = await updateLeague(id, {
-            name,
+        const rawData = {
+            name: formData.get("name"),
+            startDate: formData.get("startDate"),
+            endDate: formData.get("endDate"),
+            scoringMethodId: formData.get("scoringMethodId"),
+            photo: formData.get("photo"),
+            visible: formData.get("visible"),
+            type: formData.get("type"),
+            participants: formData.get("participants"),
+            races: formData.get("races"),
+        };
+
+
+        const parsedData = LeagueFormSchema.parse({
+            name: rawData.name,
+            startDate: rawData.startDate,
+            endDate: rawData.endDate,
+            photoUrl: 'xxx',
+            visible: rawData.visible === "true",
+            type: rawData.type,
+            scoringMethodId: rawData.scoringMethodId ? Number(rawData.scoringMethodId) : undefined,
+            participants: JSON.parse(rawData.participants as string),
+            races: JSON.parse(rawData.races as string),
+        });
+
+        // Normalizar fechas
+        const normalizedStartDate = new Date(parsedData.startDate);
+        const normalizedEndDate = new Date(parsedData.endDate);
+        const bannerFile = rawData.photo as File;
+
+
+        const updatedLeague = await updateLeague(leagueId, {
+            name: parsedData.name,
             startDate: normalizedStartDate,
             endDate: normalizedEndDate,
-            visible: Boolean(visible),
-            type,
-            scoringMethodId: parseInt(scoringMethodId),
-            photoUrl: bannerFileUrl,
-            participants: participants.map(({ id, ...rest }) => ({ ...rest })),
-            races: races.map(({ id, ...rest }) => ({ ...rest })),
+            visible: parsedData.visible,
+            type: parsedData.type as LeagueType,
+            scoringMethodId: parsedData.scoringMethodId,
+            photo: bannerFile,
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            participants: parsedData.participants.map(({ id, ...rest }) => ({ ...rest })),
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            races: parsedData.races.map(({ id, ...rest }) => ({ ...rest })),
         })
         return Response.json({ success: true, league: updatedLeague });
     } catch (error) {
@@ -68,24 +80,14 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 }
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
-    const id = parseInt((await params).id)
+    const leagueId = parseInt((await params).id)
 
     try {
-        const result = await deleteLeague(id)
+        await deleteLeague(leagueId)
 
-        if (!result) {
-            return Response.json({ error: 'Runner not found' }, { status: 500 });
-        }
-
-        if (!result.photoUrl) {
-            return Response.json({ success: true });
-        }
-
-        const file_name = result.photoUrl.split('/').at(-1) || ''
-        await deleteFromS3(file_name)
         return Response.json({ success: true });
     } catch (error) {
         console.error("Ocurrió un error:", error);
-        return Response.json({ success: false, error: 'Error al actualizar la Liga' }, { status: 500 });
+        return Response.json({ success: false, error: 'Error al eliminar la Liga' }, { status: 500 });
     }
 }

@@ -37,6 +37,8 @@ export default function RunnerParticipationTable({ runners, values, onChange }: 
             data: r
         }
     });
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [runnerSelectItems, setRunnerSelectItems] = useState<RunnerSelectItems[]>(newRunnerSelectItems)
 
     const addParticipation = () => {
@@ -62,7 +64,7 @@ export default function RunnerParticipationTable({ runners, values, onChange }: 
 
     useEffect(() => {
         onChange(participations)
-    }, [participations])
+    }, [participations, onChange])
 
     return (
         <div className="space-y-4">

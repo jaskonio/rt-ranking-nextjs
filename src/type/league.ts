@@ -1,5 +1,30 @@
+import { z } from "zod";
 import { ScoringMethod } from "./scoring-method";
 
+
+export const LeagueFormSchema = z.object({
+    name: z.string().min(1, "League name is required"),
+    startDate: z.string().min(1, "Start date is required"),
+    endDate: z.string().min(1, "End date is required"),
+    photoUrl: z.string().min(1, "Foto is required"),
+    visible: z.boolean(),
+    type: z.string().min(1, "Foto is required"),
+    scoringMethodId: z.number().optional(),
+
+    participants: z.array(z.object({
+        id: z.number(),
+        runnerId: z.number(),
+        bibNumber: z.number(),
+        disqualified_at_race_order: z.number()
+    })),
+    races: z.array(z.object({
+        id: z.number(),
+        raceId: z.number(),
+        order: z.number(),
+    })),
+});
+
+export type LeagueFormSchematType = z.infer<typeof LeagueFormSchema>
 
 export enum LeagueType {
     CIRCUITO = 'CIRCUITO',

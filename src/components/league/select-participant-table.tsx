@@ -22,7 +22,7 @@ export default function SelectParticipantTable({ runners, availableRaces, races,
 
     useEffect(() => {
         onChange(selectedParticipants)
-    }, [selectedParticipants])
+    }, [selectedParticipants, onChange])
 
     const onUpdate = (id: number, field: keyof LeagueParticipant, value: string | number) => {
         console.log(value)

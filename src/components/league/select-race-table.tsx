@@ -21,7 +21,7 @@ export default function SelectRaceTable({ availableRaces, races, onChange }: Sel
 
     useEffect(() => {
         onChange(selectedRaces)
-    }, [selectedRaces])
+    }, [selectedRaces, onChange])
 
     const handleDragEnd = (result: DropResult) => {
         if (!result.destination) return;

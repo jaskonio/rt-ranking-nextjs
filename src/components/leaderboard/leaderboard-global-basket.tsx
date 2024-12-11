@@ -3,8 +3,8 @@
 import { Trophy, Route } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { RunnerGlobalBasket } from "@/type/runner";
 import { getPodiumIcon } from "./leaderboard";
+import { RunnerGlobalBasket } from "@/type/league";
 
 
 const RunnerDetail = (runner: RunnerGlobalBasket) => {

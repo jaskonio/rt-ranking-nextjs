@@ -31,7 +31,7 @@ export default function SortingAttributeTable({ sortingKeys, values, onChange }:
 
     useEffect(() => {
         onChange(sortingAttributes)
-    }, [sortingAttributes])
+    }, [sortingAttributes, onChange])
 
     const addSortingAttribute = () => {
         console.log(sortingAttributes)

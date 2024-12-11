@@ -3,13 +3,14 @@ import { sortPaces, sortTimes } from "@/lib/utils";
 import { LeagueType, RunnerGlobalBasket, RunnerGlobalCircuito } from "@/type/league";
 import { ScoringMethod } from "@/type/scoring-method";
 import { GlobalRaceBasketClassification, LeagueGlobalCircuitoRanking, LeagueParticipant, LeagueRaceCircuitoRanking, RunnerParticipation } from "@prisma/client";
+import { deleteFromS3, uploadToS3 } from "./awsService";
 
 type LeagueDTO = {
     name: string;
     startDate: Date;
     endDate: Date;
     scoringMethodId: number;
-    photoUrl: string;
+    photo: File;
     visible: boolean;
     type: LeagueType;
     participants: LeagueParticipantDTO[];
@@ -28,14 +29,17 @@ type LeagueRaceDTO = {
 }
 
 export const createLeague = async (data: LeagueDTO) => {
-    const { name, startDate, endDate, scoringMethodId, photoUrl, visible, type, participants, races } = data
+    const { name, startDate, endDate, scoringMethodId, photo, visible, type, participants, races } = data
+
+    const buffer = await photo.arrayBuffer();
+    const bannerFileUrl = await uploadToS3(Buffer.from(buffer), undefined);
     return await prisma.league.create({
         data: {
             name,
             startDate,
             endDate,
             scoringMethodId,
-            photoUrl,
+            photoUrl: bannerFileUrl,
             visible,
             type,
             participants: {
@@ -49,7 +53,16 @@ export const createLeague = async (data: LeagueDTO) => {
 }
 
 export const updateLeague = async (id: number, data: Partial<LeagueDTO>) => {
-    const { name, startDate, endDate, scoringMethodId, photoUrl, visible, type, participants, races } = data
+    const { name, startDate, endDate, scoringMethodId, photo, visible, type, participants, races } = data
+
+    let photoUrl;
+
+    if (photo && typeof photo != 'string') {
+        const league = await getLeagueById(id)
+        const file_name = league?.photoUrl?.split('/').at(-1) ?? ''
+        const buffer = await photo.arrayBuffer();
+        photoUrl = await uploadToS3(Buffer.from(buffer), file_name);
+    }
 
     await prisma.leagueRaceCircuitoRanking.deleteMany({
         where: { leagueId: id }
@@ -117,7 +130,17 @@ export const deleteLeague = async (id: number) => {
 
     const league = prisma.league.delete({ where: { id } });
     const results = await prisma.$transaction([globalRaceBasketClassification, globalRaceBasketHistory, leagueGlobalCircuitoRanking, leagueParticipant, leagueRace, leagueRaceCircuitoRanking, league])
-    return results[6]
+    const leagueResult = results[6]
+
+
+    if (!leagueResult) throw new Error('Error delete league');
+
+
+    if (!leagueResult.photoUrl) return
+
+    const file_name = leagueResult.photoUrl.split('/').at(-1) || ''
+
+    await deleteFromS3(file_name)
 }
 
 export const getLeagueById = async (id: number) => {

@@ -1,7 +1,7 @@
 "use client";
 
+import { RunnerLeagueDetail } from "@/type/league";
 import { Medal, Trophy, ChevronUp, ChevronDown, Minus } from "lucide-react";
-import { RunnerLeagueDetail } from "@/type/runner";
 
 
 export const getPodiumIcon = (position: number) => {

@@ -3,7 +3,7 @@
 import { Medal, Trophy, Activity, Route, Signal } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { RunnerGlobalCircuito } from "@/type/runner";
+import { RunnerGlobalCircuito } from "@/type/league";
 
 
 const getPodiumIcon = (position: number) => {

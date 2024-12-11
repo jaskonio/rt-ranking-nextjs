@@ -59,7 +59,7 @@ export default function ScoringMethodList({ scoringMethods }: { scoringMethods: 
                 {methods.map((method) => (
                     <TableRow
                         key={method.id}
-                        className="bg-gray-800 hover:bg-gray-700 text-gray-100"
+                        className="border-gray-700 hover:bg-gray-700/30 transition-colors animate-fade-in"
                     >
                         <TableCell className="font-medium text-white">{method.name}</TableCell>
                         <TableCell className="text-gray-300">{method.description}</TableCell>

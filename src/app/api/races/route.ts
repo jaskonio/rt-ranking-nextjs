@@ -58,6 +58,7 @@ export async function POST(request: Request) {
     }
 
     if (platform == Platform.CUSTOM && raceBasketClassification.length != 0) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const filledParticipations = raceBasketClassification.map(({ id, ...rest }) => {
         return {
           ...rest,

@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import LeagueForm, { LeagueFormSchematType } from "../../league-form";
-import { League, LeagueResponse } from "@/type/league";
+import LeagueForm from "../../league-form";
+import { League, LeagueFormSchematType, LeagueResponse } from "@/type/league";
 
 
 export default function Page() {
@@ -47,9 +47,14 @@ export default function Page() {
         formData.append("visible", String(payload.visible));
         formData.append("type", String(payload.type));
 
-        const imageBlob = await fetch(payload.photoUrl).then((res) => res.blob());
-        const imageFile = new File([imageBlob], "banner.jpg", { type: imageBlob.type });
-        formData.append("photo", imageFile);
+        if (!payload.photoUrl.startsWith('http')) {
+            const imageBlob = await fetch(payload.photoUrl).then((res) => res.blob());
+            const imageFile = new File([imageBlob], "banner.jpg", { type: imageBlob.type });
+            formData.append("photo", imageFile);
+        }
+        else {
+            formData.append("photo", payload.photoUrl);
+        }
 
         formData.append("participants", JSON.stringify(payload.participants));
         formData.append("races", JSON.stringify(payload.races));
