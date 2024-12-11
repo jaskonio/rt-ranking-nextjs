@@ -1,4 +1,4 @@
-import { saveBannerContent } from "@/services/awsService";
+import { uploadToS3 } from "@/services/awsService";
 import { createLeague, getAllLeagues } from "@/services/leagueService";
 import { LeagueParticipant, LeagueRace, LeagueType } from "@/type/league";
 
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
         const startDate = formData.get("startDate") as string;
         const endDate = formData.get("endDate") as string;
         const scoringMethodId = formData.get("scoringMethodId") as string;
-        // const bannerFile = formData.get("photo") as File;
+        const bannerFile = formData.get("photo") as File;
         const visible = formData.get("visible") as string;
         const type = formData.get("type") as LeagueType;
         const participantsJsonString = formData.get("participants") as string;
@@ -40,7 +40,8 @@ export async function POST(request: Request) {
         const normalizedStartDate = new Date(startDate)
         const normalizedEndDate = new Date(endDate)
 
-        const bannerFileUrl = await saveBannerContent();
+        const buffer = await bannerFile.arrayBuffer();
+        const bannerFileUrl = await uploadToS3(Buffer.from(buffer), undefined);
 
         const newLeague = await createLeague({
             name,
