@@ -56,6 +56,7 @@ export type League = {
     visible: boolean;
     participants: LeagueParticipant[]
     races: LeagueRace[];
+    leagueGlobalCircuitoRanking: LeagueGlobalCircuitoRanking[]
 }
 
 export type RunnerParticipation = {
@@ -82,6 +83,18 @@ export type RunnerParticipation = {
     realPace: string;
     realCategoryPosition: number;
     realGenderPosition: number
+}
+
+export type LeagueGlobalCircuitoRanking = {
+    id: number,
+    bestPosition: number,
+    bestRealPace: string,
+    leagueId: number,
+    numberParticipantion: number,
+    participantId: number,
+    points: number,
+    position: number,
+    top5Finishes: number,
 }
 
 export type RunnerLeagueDetail = {

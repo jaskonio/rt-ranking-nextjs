@@ -1,6 +1,6 @@
 "use client"
 
-import LeagueCardList from "@/components/league-list"
+import LeagueCardList from "@/components/league/league-list"
 import { League } from "@/type/league"
 import { useEffect, useState } from "react"
 

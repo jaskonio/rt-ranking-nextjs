@@ -22,7 +22,8 @@ export default function SelectParticipantTable({ runners, availableRaces, races,
 
     useEffect(() => {
         onChange(selectedParticipants)
-    }, [selectedParticipants, onChange])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedParticipants])
 
     const onUpdate = (id: number, field: keyof LeagueParticipant, value: string | number) => {
         console.log(value)

@@ -21,7 +21,8 @@ export default function SelectRaceTable({ availableRaces, races, onChange }: Sel
 
     useEffect(() => {
         onChange(selectedRaces)
-    }, [selectedRaces, onChange])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedRaces])
 
     const handleDragEnd = (result: DropResult) => {
         if (!result.destination) return;
